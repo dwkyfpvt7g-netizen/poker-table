@@ -31,14 +31,14 @@ button{font:inherit;color:inherit}
 .mid.f{inset:15% 21%;border:1.5px solid currentColor;border-radius:.25em;flex-direction:column;font-size:1em;background:linear-gradient(135deg,#fff,#f3e9cd)}
 .mid.f i{font:700 2.2em/1 Georgia,serif;font-style:normal}
 .mid.f u{text-decoration:none;font-size:1.4em;line-height:1}
-.em{border:2px dashed rgba(255,255,255,.45);display:flex;align-items:center;justify-content:center;color:rgba(255,255,255,.75);font-style:normal;font-size:2em}
+.em{border:2px dashed rgba(70,52,16,.5);display:flex;align-items:center;justify-content:center;color:rgba(70,52,16,.7);font-style:normal;font-size:2em}
 .bk{border:.3em solid #fff;background:repeating-linear-gradient(45deg,#8a1626 0 .35em,#a81f33 .35em .7em);box-shadow:0 2px 5px rgba(0,0,0,.5)}
 .mini .ix{top:7%;left:9%;font-size:calc(var(--cw)*.42)}
 .mini .ix.b,.mini .mid{display:none}
 .brow,.hrow{position:absolute;left:50%;transform:translate(-50%,-50%);display:flex}
-.brow{top:50%;gap:1cqw}.hrow{top:76.4%}
-.chip{position:absolute;left:50%;top:61%;transform:translate(-50%,-50%);text-align:center;color:#fff;text-shadow:0 1px 3px rgba(0,0,0,.6);min-width:30cqw;pointer-events:none}
-.chip b{display:block;font-size:8cqw;line-height:1}
+.brow{top:46%;gap:.9cqw}.hrow{top:65.6%}
+.chip{position:absolute;left:50%;top:55.6%;transform:translate(-50%,-50%);text-align:center;color:#2b2410;min-width:30cqw;pointer-events:none}
+.chip b{display:block;font-size:6.6cqw;line-height:1}
 .chip small{font-size:3cqw;letter-spacing:.4cqw;opacity:.85}
 .seat{position:absolute;width:0;height:0}
 .chr{position:absolute;left:-6.5cqw;top:-6.5cqw;width:13cqw;height:13cqw;z-index:1;filter:drop-shadow(0 1cqw 1.2cqw rgba(0,0,0,.45))}
@@ -49,11 +49,10 @@ button{font:inherit;color:inherit}
 .ppl svg{width:100%;height:100%;display:block}
 .ppl.sit{animation:sit .4s ease-out}
 @keyframes sit{from{transform:scale(.3) translateY(5px);opacity:0}to{transform:none;opacity:1}}
-.cg{position:absolute;left:0;transform:translateX(-50%);z-index:3}
-.cg.dn{top:3.6cqw}.cg.up{bottom:3.6cqw}
+.cg{position:absolute;left:calc(var(--kx)*1cqw);top:calc(var(--ky)*1cqw);transform:translate(-50%,-50%);z-index:3}
 .fc{display:flex}
-.np{position:absolute;left:0;transform:translateX(-50%);z-index:4;display:flex;flex-direction:column;align-items:center;gap:.5cqw;pointer-events:none}
-.np.a{bottom:4.8cqw;flex-direction:column-reverse}.np.b{top:4.8cqw}
+.np{position:absolute;left:calc(var(--nx)*1cqw);top:calc(var(--ny)*1cqw);transform:translate(-50%,-50%);z-index:4;display:flex;flex-direction:column;align-items:center;gap:.5cqw;pointer-events:none}
+.np.a{flex-direction:column-reverse}
 .np b{background:#1b1b1f;color:#fff;font-size:2.8cqw;padding:.5cqw 2.2cqw;border-radius:99px;border:1px solid #c9a24a;white-space:nowrap}
 .eq{font-style:normal;font-weight:800;font-size:2.9cqw;color:#fff;background:rgba(0,0,0,.65);padding:.3cqw 1.8cqw;border-radius:99px;white-space:nowrap}
 .seat.win{filter:drop-shadow(0 0 2cqw #f5d26b)}
@@ -495,15 +494,15 @@ var SUITS=["♣","♦","♥","♠"],LAB={14:"A",13:"K",12:"Q",11:"J"};
 var rk=function(c){return (c>>2)+2},su=function(c){return c&3};
 var lab=function(r){return LAB[r]||String(r)},red=function(c){var s=su(c);return s===1||s===2};
 var $=function(i){return document.getElementById(i)},nn=function(c){return c!==null};
-var H=2,slots=[null,null,null,null,null,null,null],occ=[0,0,0,1,0,0,0,0];
+var H=2,slots=[null,null,null,null,null,null,null],occ=[0,0,0,1,0,0,0,0,0];
 var trials=10000,active=-1,running=false,lastIdx=[],dealAnim=false,chip="",game=null,justSat=-1;
 var TOPT=[[1000,10000,50000],[500,2000,10000]];
-var SW={2:9,4:7.5,5:7,6:6.5},OVF={2:.35,4:.45,5:.52,6:.55},HW={2:17,4:13,5:11.5,6:10.5};
-var AN=[140,175,208,240,300,332,5,40];   /* seat angles, hero = 90 (bottom), dealer = top gap */
+var SW={2:7.4,4:6.3,5:5.7,6:5.2},OVF={2:.35,4:.45,5:.52,6:.55},HW={2:13,4:11,5:10,6:9};
+/* seat geometry: see sp() */
 var pairs=[],TRIPS=[[0,1,2],[0,1,3],[0,1,4],[0,2,3],[0,2,4],[0,3,4],[1,2,3],[1,2,4],[1,3,4],[2,3,4]];
 function buildPairs(){pairs=[];for(var a=0;a<H;a++)for(var b=a+1;b<H;b++)pairs.push([a,b])}
 function unit(){return H===2?1:pairs.length*10}
-function maxOpp(){return Math.min(8,Math.floor(47/H)-1)}
+function maxOpp(){return Math.min(9,Math.floor(47/H)-1)}
 function oppCount(){return occ.reduce(function(a,b){return a+b},0)}
 function gname(){return H===2?"Texas Hold’em":"Omaha "+H}
 function heroSet(){for(var i=0;i<H;i++){if(slots[i]===null)return false}return true}
@@ -543,33 +542,61 @@ function score(hole,bd){
 }
 
 /* ---- table artwork: leather rail with a gap at the dealer, felt, dealer ---- */
+function sp(f,d){
+  /* point on the table outline, f = 0..1 clockwise on screen from bottom centre, d = distance outward from the betting lane */
+  var rl=27.75,S=26,Q=rl*Math.PI/2,T=rl*Math.PI,L=2*Q+T+2*S,u=(((f%1)+1)%1)*L,r=rl+d,a,x,y,nx,ny;
+  if(u<Q){a=Math.PI/2+u/rl;nx=Math.cos(a);ny=Math.sin(a);x=50+r*nx;y=88+r*ny}
+  else if(u<Q+S){x=50-r;y=88-(u-Q);nx=-1;ny=0}
+  else if(u<Q+S+T){a=Math.PI+(u-Q-S)/rl;nx=Math.cos(a);ny=Math.sin(a);x=50+r*nx;y=62+r*ny}
+  else if(u<Q+2*S+T){x=50+r;y=62+(u-Q-S-T);nx=1;ny=0}
+  else{a=(u-Q-2*S-T)/rl;nx=Math.cos(a);ny=Math.sin(a);x=50+r*nx;y=88+r*ny}
+  return {x:x,y:y,nx:nx,ny:ny};
+}
+function stad(r){return "M"+(50-r)+" 62A"+r+" "+r+" 0 0 1 "+(50+r)+" 62L"+(50+r)+" 88A"+r+" "+r+" 0 0 1 "+(50-r)+" 88Z"}
 function bgSvg(){
-  function pt(rx,ry,t){var a=t*Math.PI/180;return (50+rx*Math.cos(a)).toFixed(2)+" "+(80+ry*Math.sin(a)).toFixed(2)}
-  function arc(rx,ry){return "M"+pt(rx,ry,291)+" A"+rx+" "+ry+" 0 1 1 "+pt(rx,ry,249)}
-  function path(rx,ry,st,w,extra){return '<path d="'+arc(rx,ry)+'" fill="none" stroke="'+st+'" stroke-width="'+w+'" stroke-linecap="round" '+(extra||"")+'/>'}
-  var s='<defs><radialGradient id="fg" cx=".5" cy=".42" r=".72"><stop offset="0" stop-color="#25975f"/><stop offset=".7" stop-color="#0f5d3a"/><stop offset="1" stop-color="#0a4229"/></radialGradient></defs>';
-  /* dealer (drawn first so the table hides the lower body) */
-  s+='<g transform="translate(36 1.5) scale(.7)"><g class="dl">'+
+  var s='<defs>'+
+    '<mask id="mr" maskUnits="userSpaceOnUse" x="0" y="0" width="100" height="148"><rect width="100" height="148" fill="#fff"/><circle cx="50" cy="19" r="15" fill="#000"/></mask>'+
+    '<mask id="mf" maskUnits="userSpaceOnUse" x="0" y="0" width="100" height="148"><rect width="100" height="148" fill="#fff"/><circle cx="50" cy="19" r="9.5" fill="#000"/></mask>'+
+    '<clipPath id="cf"><path d="'+stad(34.8)+'"/></clipPath>'+
+    '<pattern id="tp" width="6" height="10.392" patternUnits="userSpaceOnUse"><path d="M0 0L3 5.196L6 10.392M6 0L3 5.196L0 10.392M0 0H6M0 5.196H6M0 10.392H6" fill="none" stroke="#9a8850" stroke-width=".22"/></pattern>'+
+    '<linearGradient id="rg" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#2b2b31"/><stop offset=".5" stop-color="#0b0b0d"/><stop offset="1" stop-color="#1c1c20"/></linearGradient></defs>';
+  /* dealer (behind the table, so the table hides the lower body) */
+  s+='<g transform="translate(36 -1) scale(.7)"><g class="dl">'+
      '<path d="M2 44 Q4 27 20 26 Q36 27 38 44Z" fill="#17171d"/><path d="M14 44 L20 27 L26 44Z" fill="#f4f4f4"/>'+
      '<path d="M17 29.4 L20 31.2 L23 29.4 V33.2 L20 31.8 L17 33.2Z" fill="#b01c2e"/>'+
      '<rect x="17.4" y="21" width="5.2" height="6.5" rx="2" fill="#e3b58f"/><ellipse cx="20" cy="14" rx="7.6" ry="8.6" fill="#e8bd96"/>'+
      '<path d="M12.2 12 Q12 4.4 20 4.2 Q28 4.4 27.8 12 Q25 8.4 20 8.6 Q15 8.4 12.2 12Z" fill="#2a1d14"/>'+
      '<circle cx="17.2" cy="14.6" r=".9" fill="#222"/><circle cx="22.8" cy="14.6" r=".9" fill="#222"/>'+
      '<path d="M17.4 18.2 Q20 20.2 22.6 18.2" stroke="#7a3b2a" fill="none" stroke-width="1" stroke-linecap="round"/></g></g>';
-  s+='<ellipse cx="50" cy="80" rx="37.2" ry="52.2" fill="url(#fg)" stroke="#07331f" stroke-width=".6"/>';
-  s+=path(40,55,"#000",6.6,'opacity=".35" transform="translate(0 1.2)"')+path(40,55,"#4a2412",5.8)+path(40,55,"#6e3a1f",4.6)+
-     path(40.9,55.9,"#a1623a",1.2,'opacity=".7"')+path(38.9,53.9,"#2e160a",.9,'opacity=".5"')+
-     path(38.2,53.2,"#ecd9a8",.3,'stroke-dasharray="1.4 1"')+path(41.8,56.8,"#ecd9a8",.3,'stroke-dasharray="1.4 1"');
-  s+='<g transform="translate(46 32.5)"><rect width="8" height="5.6" rx=".8" fill="#fff"/><rect x=".6" y=".6" width="6.8" height="4.4" rx=".5" fill="#a81f33"/></g>';
-  s+='<text x="50" y="43" text-anchor="middle" font-size="3" fill="#c9a24a" opacity=".85" letter-spacing=".5" font-family="Georgia,serif">DEALER</text>';
-  s+='<text x="50" y="58" text-anchor="middle" font-size="4.4" fill="#fff" opacity=".2" letter-spacing=".9" font-family="Georgia,serif">'+gname().toUpperCase()+'</text>';
+  /* black rail with the dealer cut-out */
+  s+='<path d="'+stad(40)+'" fill="url(#rg)" mask="url(#mr)"/>';
+  s+='<path d="'+stad(39.3)+'" fill="none" stroke="#fff" stroke-opacity=".14" stroke-width=".35" mask="url(#mr)"/><path d="'+stad(40)+'" fill="none" stroke="#6a6a74" stroke-opacity=".7" stroke-width=".45" mask="url(#mr)"/>';
+  /* felt */
+  s+='<g mask="url(#mf)"><g clip-path="url(#cf)">'+
+     '<path d="'+stad(34.8)+'" fill="#d9cc9f"/><path d="'+stad(34.8)+'" fill="url(#tp)"/>'+
+     '<path d="'+stad(31)+'" fill="#d3cb9d" stroke="#111" stroke-width=".55"/>'+
+     '<path d="'+stad(24.5)+'" fill="#f4e8b9" stroke="#111" stroke-width=".55"/>';
+  for(var k=0;k<10;k++){if(k===5)continue;var a=sp(k/10,-3.25),b=sp(k/10,3.25);s+='<path d="M'+a.x.toFixed(2)+' '+a.y.toFixed(2)+'L'+b.x.toFixed(2)+' '+b.y.toFixed(2)+'" stroke="#111" stroke-width=".5"/>'}
+  s+='<path d="M41.5 20L62.5 41.5H37.5Z" fill="none"/><path d="M42 22H58L61.5 40.5H38.5Z" fill="#f4e8b9"/>'+
+     '<path d="M42 22L38.5 40.5M58 22L61.5 40.5" stroke="#111" stroke-width=".5"/></g>'+
+     '<path d="'+stad(34.8)+'" fill="none" stroke="#b99a4a" stroke-width=".5"/></g>';
+  /* the dealer's deck */
+  s+='<g transform="translate(46.2 29.2)"><rect width="7.6" height="5.2" rx=".8" fill="#fff"/><rect x=".6" y=".6" width="6.4" height="4" rx=".5" fill="#a81f33"/></g>';
+  /* own emblem: crown over a spade (not a copy of any table brand) */
+  s+='<g transform="translate(50 45.3)" opacity=".8"><path d="M-6.5 3.4L-7.5-3.2L-3.4-.4L0-5.6L3.4-.4L7.5-3.2L6.5 3.4Z" fill="#17140c"/>'+
+     '<rect x="-6.6" y="4" width="13.2" height="1.5" rx=".5" fill="#17140c"/><circle cx="-7.5" cy="-3.6" r=".9" fill="#17140c"/><circle cx="0" cy="-6" r=".9" fill="#17140c"/><circle cx="7.5" cy="-3.6" r=".9" fill="#17140c"/></g>';
+  s+='<text x="50" y="55.2" text-anchor="middle" font-size="2.9" fill="#17140c" opacity=".55" letter-spacing=".7" font-family="Georgia,serif">'+gname().toUpperCase()+'</text>';
   return s;
 }
 function chairSvg(){
-  return '<svg viewBox="0 0 40 40"><rect x="2" y="11" width="5" height="15" rx="2.5" fill="#3a2214"/><rect x="33" y="11" width="5" height="15" rx="2.5" fill="#3a2214"/>'+
-    '<path d="M3 27 Q4 39 20 39 Q36 39 37 27 L32.5 25 Q32 33 20 33 Q8 33 7.5 25Z" fill="#22140d"/>'+
-    '<ellipse cx="20" cy="19" rx="15" ry="14.5" fill="#6d3b23"/><ellipse cx="20" cy="17.2" rx="11.5" ry="10.5" fill="#85502f"/>'+
-    '<ellipse cx="20" cy="19" rx="15" ry="14.5" fill="none" stroke="#2f1a0e" stroke-width="1"/></svg>';
+  return '<svg viewBox="0 0 40 40">'+
+    '<path d="M2.5 24Q2.5 39 20 39Q37.5 39 37.5 24L35 11H5Z" fill="#9a6a3c"/>'+
+    '<path d="M4.6 24Q5 36.6 20 36.6Q35 36.6 35.4 24L33 13H7Z" fill="#d9ccb5"/>'+
+    '<path d="M9 30Q20 34 31 30M12 25Q20 28.4 28 25" stroke="#bfb097" stroke-width="1" fill="none" stroke-linecap="round"/>'+
+    '<rect x="1.5" y="6" width="7.4" height="21" rx="3.7" fill="#cdbfa6" stroke="#9a6a3c" stroke-width="1.1"/>'+
+    '<rect x="31.1" y="6" width="7.4" height="21" rx="3.7" fill="#cdbfa6" stroke="#9a6a3c" stroke-width="1.1"/>'+
+    '<rect x="8" y="5" width="24" height="23" rx="7" fill="#e6dac4" stroke="#c9bb9f" stroke-width=".9"/>'+
+    '<path d="M20 8V25M11 16.5H29" stroke="#d3c6ac" stroke-width=".8"/></svg>';
 }
 var SKIN=["#f1c9a5","#e0ac84","#c68b61","#8d5a3b","#f5d5b8","#a8714a"],HAIR=["#2a1d14","#6b3d1e","#d2a94a","#161616","#9b3d2e","#d4d4d4"],SHIRT=["#2f6fed","#c0392b","#2e8b57","#8e44ad","#e08a00","#16a0a8","#555"];
 function person(k){
@@ -601,29 +628,30 @@ function fcs(arr,base){
 }
 
 /* ---- seats ---- */
-function seatPt(i){
-  var a=AN[i]*Math.PI/180,w=Math.max(13,SW[H]*(1+(H-1)*(1-OVF[H])),16),x=50+44*Math.cos(a),y=80+59*Math.sin(a);
-  x=Math.min(Math.max(x,w/2+.5),99.5-w/2);
-  return {x:x,y:y,dn:Math.sin(a)<0.2,rot:AN[i]-90};
+function geo(k){
+  /* ring index: 0 = you (bottom right), then clockwise on screen; 10 seats, the dealer sits in the top gap */
+  var f=(0.95+k*0.1)%1,c=sp(f,16.25),kk=sp(f,3.75),dy=c.ny<-0.3?-9.5:9.5;
+  return {f:f,x:c.x,y:c.y,kx:kk.x-c.x,ky:kk.y-c.y,nx:-c.nx*6.5,ny:dy,up:dy<0,rot:Math.atan2(c.ny,c.nx)*180/Math.PI-90};
 }
+function seatSty(p){return "left:"+p.x.toFixed(2)+"%;top:"+(p.y/1.48).toFixed(2)+"%;--kx:"+p.kx.toFixed(2)+";--ky:"+p.ky.toFixed(2)+";--nx:"+p.nx.toFixed(2)+";--ny:"+p.ny.toFixed(2)}
 function seatHtml(i){
-  var p=seatPt(i),on=occ[i],g=game,sd=g&&g.stage===4,pi=on&&g?g.pidx[i]:0,cls="seat"+(on?" on":"");
+  var p=geo(i+1),on=occ[i],g=game,sd=g&&g.stage===4,pi=on&&g?g.pidx[i]:0,cls="seat"+(on?" on":"");
   if(on&&sd)cls+=g.win[pi]?" win":" lose";
-  var h='<div class="'+cls+'" style="left:'+p.x.toFixed(2)+'%;top:'+(p.y/1.48).toFixed(2)+'%">'+
-    '<div class="chr" data-s="'+i+'" style="transform:rotate('+p.rot+'deg)">'+chairSvg()+'</div>';
+  var h='<div class="'+cls+'" style="'+seatSty(p)+'">'+
+    '<div class="chr" data-s="'+i+'" style="transform:rotate('+p.rot.toFixed(1)+'deg)">'+chairSvg()+'</div>';
   if(!on)return h+'<div class="plus">+</div></div>';
   h+='<div class="ppl'+(i===justSat?" sit":"")+'">'+person(i+1)+'</div>';
-  h+='<div class="cg '+(p.dn?"dn":"up")+'">'+fcs(g?g.oc[i]:null,i*H)+'</div>';
-  h+='<div class="np '+(p.dn?"a":"b")+'"><b>'+pnb(i+1)+'Opp '+(i+1)+'</b>'+(g?'<i class="eq">'+(sd?hname(g.scores[pi]):g.eq[pi].toFixed(0)+"%")+'</i>':"")+'</div></div>';
+  h+='<div class="cg">'+fcs(g?g.oc[i]:null,i*H)+'</div>';
+  h+='<div class="np '+(p.up?"a":"b")+'"><b>'+pnb(i+1)+'Opp '+(i+1)+'</b>'+(g?'<i class="eq">'+(sd?hname(g.scores[pi]):g.eq[pi].toFixed(0)+"%")+'</i>':"")+'</div></div>';
   return h;
 }
 function heroSeat(){
-  var g=game,sd=g&&g.stage===4;
-  return '<div class="seat hero on'+(sd&&g.win[0]?" win":"")+'" style="left:50%;top:'+(137/1.48).toFixed(2)+'%"><div class="chr">'+chairSvg()+'</div><div class="ppl">'+person(8)+'</div>'+
-    '<div class="np b"><b>'+pnb(0)+'YOU</b>'+(g?'<i class="eq">'+(sd?hname(g.scores[0]):g.eq[0].toFixed(0)+"%")+'</i>':"")+'</div></div>';
+  var g=game,sd=g&&g.stage===4,p=geo(0);
+  return '<div class="seat hero on'+(sd&&g.win[0]?" win":"")+'" style="'+seatSty(p)+'"><div class="chr" style="transform:rotate('+p.rot.toFixed(1)+'deg)">'+chairSvg()+'</div><div class="ppl">'+person(0)+'</div>'+
+    '<div class="np '+(p.up?"a":"b")+'"><b>'+pnb(0)+'YOU</b>'+(g?'<i class="eq">'+(sd?hname(g.scores[0]):g.eq[0].toFixed(0)+"%")+'</i>':"")+'</div></div>';
 }
 var dlr=0,ndir=-1,NM={},hands=0;
-function parts(){var a=[0],i;for(i=0;i<8;i++){if(occ[i])a.push(i+1)}return a}
+function parts(){var a=[0],i;for(i=0;i<9;i++){if(occ[i])a.push(i+1)}return a}
 function numbering(){
   var p=parts(),n=p.length,k=p.indexOf(dlr),m={},j;
   if(k<0){dlr=0;k=0}
@@ -633,11 +661,8 @@ function numbering(){
 function nmOf(k){return k===0?"you":"Opp "+k}
 function pnb(k){return NM[k]?'<em class="pn">'+NM[k]+'</em>':""}
 function dealerHtml(){
-  var x,y;
-  if(dlr===0){x=69;y=90}
-  else{var p=seatPt(dlr-1),sx=p.x,sy=p.y/1.48;x=sx+(50-sx)*.34;y=sy+(52-sy)*.34;
-    var a=AN[dlr-1]*Math.PI/180;x+=-Math.sin(a)*5.5;y+=Math.cos(a)*4.2}
-  return '<button class="dbtn" data-d="1" aria-label="Dealer button" style="left:'+x.toFixed(2)+'%;top:'+y.toFixed(2)+'%">DEALER</button>';
+  var f=(0.95+dlr*0.1)%1,q=sp(f,-1.2),t=sp(f+0.002,-1.2),tx=t.x-q.x,ty=t.y-q.y,m=Math.hypot(tx,ty)||1,x=q.x+tx/m*9,y=q.y+ty/m*9;
+  return '<button class="dbtn" data-d="1" aria-label="Dealer button" style="left:'+x.toFixed(2)+'%;top:'+(y/1.48).toFixed(2)+'%">DEALER</button>';
 }
 function moveDealer(step){
   var p=parts(),k=p.indexOf(dlr);if(k<0)k=0;
@@ -649,9 +674,9 @@ function dealerNote(){
 }
 function render(){NM=numbering();
   var g=game,i,h='<svg class="bg'+(dealAnim?" dealing":"")+'" viewBox="0 0 100 148">'+bgSvg()+'</svg>';
-  for(i=0;i<8;i++)h+=seatHtml(i);
+  for(i=0;i<9;i++)h+=seatHtml(i);
   h+=heroSeat();h+=dealerHtml();
-  h+='<div class="brow">';for(i=H;i<H+5;i++)h+=sl(i,10);
+  h+='<div class="brow">';for(i=H;i<H+5;i++)h+=sl(i,8.6);
   h+='</div><div class="chip">'+chip+'</div><div class="hrow">';
   for(i=0;i<H;i++)h+=sl(i,HW[H],i?(H===2?"margin-left:2cqw":"margin-left:calc(var(--cw)*-.42)"):"");
   h+='</div>';
@@ -682,7 +707,7 @@ $("table").addEventListener("click",function(e){
 /* ---- game selector ---- */
 function setMode(n){
   H=n;game=null;slots=[];for(var i=0;i<H+5;i++)slots.push(null);
-  while(oppCount()>maxOpp()){for(var k=7;k>=0;k--){if(occ[k]){occ[k]=0;break}}}
+  while(oppCount()>maxOpp()){for(var k=8;k>=0;k--){if(occ[k]){occ[k]=0;break}}}
   buildPairs();
   Array.prototype.forEach.call($("gsel").children,function(b){b.classList.toggle("on",+b.getAttribute("data-h")===H)});
   var m=H===2?0:1,tb=$("trials").children;
@@ -786,7 +811,7 @@ function nextGame(){
   for(i=51;i>0;i--){j=Math.floor(Math.random()*(i+1));t=d[i];d[i]=d[j];d[j]=t}
   var k=0,g={stage:0,hero:[],oc:{},seats:[],pidx:{},board:[]};
   for(q=0;q<H;q++)g.hero.push(d[k++]);
-  for(i=0;i<8;i++){if(occ[i]){g.oc[i]=[];for(q=0;q<H;q++)g.oc[i].push(d[k++]);g.pidx[i]=g.seats.length+1;g.seats.push(i)}}
+  for(i=0;i<9;i++){if(occ[i]){g.oc[i]=[];for(q=0;q<H;q++)g.oc[i].push(d[k++]);g.pidx[i]=g.seats.length+1;g.seats.push(i)}}
   for(i=0;i<5;i++)g.board.push(d[k++]);
   game=g;slots=g.hero.concat([null,null,null,null,null]);
   reset();dealAnim=true;lastIdx=[];for(q=0;q<H;q++)lastIdx.push(q);
@@ -842,7 +867,7 @@ function dealToTable(){
   for(i=0;i<need;i++){pn=(i%n)+1;(hands[pn]=hands[pn]||[]).push(L[i])}
   var bd=L.slice(need,need+5),cnt=bd.length>=5?5:bd.length>=4?4:bd.length>=3?3:0;bd=bd.slice(0,cnt);
   var g={stage:cnt===0?0:cnt===3?1:cnt===4?2:4,hero:hands[NM[0]],oc:{},seats:[],pidx:{},board:bd.slice(),fromDeal:true};
-  for(i=0;i<8;i++){if(occ[i]){g.oc[i]=hands[NM[i+1]];g.pidx[i]=g.seats.length+1;g.seats.push(i)}}
+  for(i=0;i<9;i++){if(occ[i]){g.oc[i]=hands[NM[i+1]];g.pidx[i]=g.seats.length+1;g.seats.push(i)}}
   slots=g.hero.concat(bd);while(slots.length<H+5)slots.push(null);
   game=g;reset();dealAnim=true;lastIdx=[];for(i=0;i<slots.length;i++){if(slots[i]!==null)lastIdx.push(i)}
   evalGame();stageChip();
