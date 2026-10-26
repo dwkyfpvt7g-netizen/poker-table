@@ -151,6 +151,11 @@ button{font:inherit;color:inherit}
 #lockov .keys button:active{background:rgba(255,255,255,.45)}
 #lockov .msg{min-height:20px;font-size:15px;opacity:.9}
 #lockov .cnc{border:0;background:none;color:#fff;font-size:17px;padding:8px 16px}
+
+#lkTower{position:absolute;inset:0;width:100%;height:100%;display:block}
+#lockov.photo #lkTower{display:none}
+.lw{fill:#0b1424;stroke:#46537a;stroke-width:1.5;transition:fill .6s}
+.lw.on{fill:#ffd770;stroke:#fff1c2;filter:url(#lkGlow)}
 </style>
 <main>
   <h1 id="ttl">♠ Texas Hold’em</h1>
@@ -181,7 +186,7 @@ button{font:inherit;color:inherit}
   <p class="note">Estimates assume random opponent cards. For study and analysis only.</p>
 </main>
 
-<div id="lockov" aria-label="Locked"><div class="clk"><b id="lkT">9:41</b><span id="lkD"></span></div>
+<div id="lockov" aria-label="Locked"><svg id="lkTower" viewBox="0 0 400 860" preserveAspectRatio="xMidYMax slice" aria-hidden="true"><defs><linearGradient id="lkSky" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#050912"/><stop offset=".6" stop-color="#14213d"/><stop offset="1" stop-color="#2b3a67"/></linearGradient><linearGradient id="lkBld" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#1b2338"/><stop offset=".5" stop-color="#2a3550"/><stop offset="1" stop-color="#151b2c"/></linearGradient><filter id="lkGlow" x="-60%" y="-60%" width="220%" height="220%"><feGaussianBlur stdDeviation="9" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter></defs><rect width="400" height="860" fill="url(#lkSky)"/><g fill="#fff" opacity=".75"><circle cx="40" cy="60" r="1.2"/><circle cx="330" cy="40" r="1.4"/><circle cx="90" cy="150" r="1"/><circle cx="360" cy="140" r="1.2"/><circle cx="250" cy="90" r="1"/><circle cx="170" cy="30" r="1.1"/><circle cx="20" cy="220" r="1"/><circle cx="380" cy="260" r="1"/></g><g fill="#0c1220"><rect x="0" y="560" width="70" height="300"/><rect x="60" y="640" width="50" height="220"/><rect x="310" y="520" width="90" height="340"/><rect x="280" y="660" width="40" height="200"/></g><rect x="198" y="40" width="4" height="70" fill="#3a4666"/><circle cx="200" cy="38" r="3" fill="#ff5a4d"/><polygon points="150,110 250,110 262,150 138,150" fill="#222c45"/><rect x="104" y="150" width="192" height="710" fill="url(#lkBld)"/><rect x="98" y="196" width="204" height="10" fill="#10172a"/><rect x="98" y="800" width="204" height="60" fill="#0e1424"/><g stroke="#3b4768" stroke-width="1.5" opacity=".7"><line x1="200" y1="206" x2="200" y2="800"/><line x1="104" y1="150" x2="104" y2="860"/><line x1="296" y1="150" x2="296" y2="860"/></g><rect class="lw" id="lw1" x="118" y="232" width="76" height="84" rx="3"/><rect class="lw" id="lw2" x="216" y="232" width="76" height="84" rx="3"/><rect class="lw" id="lw3" x="118" y="350" width="76" height="84" rx="3"/><rect class="lw" id="lw4" x="216" y="350" width="76" height="84" rx="3"/><rect class="lw" id="lw5" x="118" y="468" width="76" height="84" rx="3"/><rect class="lw" id="lw6" x="216" y="468" width="76" height="84" rx="3"/><rect class="lw" id="lw7" x="118" y="586" width="76" height="84" rx="3"/><rect class="lw" id="lw8" x="216" y="586" width="76" height="84" rx="3"/><rect class="lw" id="lw9" x="118" y="704" width="76" height="84" rx="3"/><rect class="lw" id="lw10" x="216" y="704" width="76" height="84" rx="3"/></svg><div class="clk"><b id="lkT">9:41</b><span id="lkD"></span></div>
 <div class="pad"><div class="msg" id="lkM">Enter Passcode</div><div class="dots" id="lkDots"><i></i><i></i><i></i><i></i><i></i><i></i></div>
 <div class="keys" id="lkKeys"></div><button class="cnc" id="lkCancel">Cancel</button></div></div>
 <div class="sheet" id="sheet"><div class="in">
@@ -204,6 +209,7 @@ button{font:inherit;color:inherit}
       <button class="go sbtn alt" id="scFlip" disabled>Back camera</button>
     </div>
     <div class="scbtns"><button class="go sbtn" id="scSecret">Secret mode</button><label class="go sbtn alt" for="scWall">Choose wallpaper</label></div>
+    <button class="go sbtn alt" id="scTower">Skyscraper wallpaper</button>
     <input type="file" accept="image/*" id="scWall" hidden>
     <button class="go sbtn alt" id="scWide" aria-pressed="true">Wide angle: On</button>
     <button class="go sbtn alt" id="scMono" aria-pressed="true">Black &amp; white view: On</button>
@@ -1244,14 +1250,23 @@ function defaultWall(){
   return c.toDataURL("image/jpeg",.85);
 }
 function setWall(u){lk.style.backgroundImage="url("+u+")"}
-(function(){var u=null;try{u=localStorage.getItem("pt_wall")}catch(e){}setWall(u||defaultWall())})();
+function useTower(){lk.classList.remove("photo");lk.dataset.photo="";lk.style.backgroundImage="none";try{localStorage.removeItem("pt_wall")}catch(e){}}
+function usePhoto(u){setWall(u);lk.dataset.photo="1";lk.classList.add("photo")}
+(function(){var u=null;try{u=localStorage.getItem("pt_wall")}catch(e){}if(u)usePhoto(u);else useTower()})();
+function towerUpdate(){
+  var on={},g=game;
+  try{if(g&&g.stage===4&&g.win){g.win.forEach(function(v,p){if(v){on[NM[p===0?0:g.seats[p-1]+1]]=1}})}}catch(e){}
+  for(var i=1;i<=10;i++){var w=document.getElementById("lw"+i);if(w)w.setAttribute("class","lw"+(on[i]?" on":""))}
+}
+setInterval(function(){if(lk.classList.contains("on"))towerUpdate()},400);
+$("scTower").onclick=function(){useTower();$("scMsg").textContent="Skyscraper wallpaper on."};
 $("scWall").onchange=function(){
   var f=this.files&&this.files[0];if(!f)return;
   var im=new Image(),url=URL.createObjectURL(f);
   im.onload=function(){
     var m=1400,k=Math.min(1,m/Math.max(im.width,im.height)),c=document.createElement("canvas");c.width=Math.round(im.width*k);c.height=Math.round(im.height*k);
     c.getContext("2d").drawImage(im,0,0,c.width,c.height);URL.revokeObjectURL(url);
-    var d=c.toDataURL("image/jpeg",.8);setWall(d);try{localStorage.setItem("pt_wall",d)}catch(e){}
+    var d=c.toDataURL("image/jpeg",.8);usePhoto(d);try{localStorage.setItem("pt_wall",d)}catch(e){}
     $("scMsg").textContent="Wallpaper set.";
   };im.onerror=function(){$("scMsg").textContent="Could not read that photo."};im.src=url;this.value="";
 };
@@ -1264,15 +1279,15 @@ document.addEventListener("visibilitychange",function(){if(document.visibilitySt
 (function(){var h="";[1,2,3,4,5,6,7,8,9,"",0,"⌫"].forEach(function(k){h+=k===""?'<button class="e" disabled></button>':'<button data-k="'+k+'">'+k+'</button>'});$("lkKeys").innerHTML=h})();
 function secretEnter(){
   lkIn="";lkDots();$("lkM").textContent="Enter Passcode";lkClock();clearInterval(lkTimer);lkTimer=setInterval(lkClock,15000);
-  lk.className="on";wakeOn();
+  lk.className="on"+(lk.dataset.photo?" photo":"");towerUpdate();wakeOn();
 }
-function secretLeave(){lk.className="";clearInterval(lkTimer);wakeOff()}
+function secretLeave(){lk.className=lk.dataset.photo?"photo":"";clearInterval(lkTimer);wakeOff()}
 $("scSecret").onclick=function(){
   if(!liveOn){liveStart();var n=0,t=setInterval(function(){n++;if(liveOn||n>40){clearInterval(t);if(liveOn)secretEnter();else $("scMsg").textContent="Start the camera first (see the message above)."}},150)}
   else secretEnter();
 };
-lk.addEventListener("click",function(e){if(!lk.classList.contains("ask")&&!lk.classList.contains("on"))return;if(lk.className==="on"){lk.className="on ask";}});
-$("lkCancel").onclick=function(e){e.stopPropagation();lkIn="";lkDots();lk.className="on"};
+lk.addEventListener("click",function(e){if(!lk.classList.contains("ask")&&!lk.classList.contains("on"))return;if(!lk.classList.contains("ask")){lk.className="on ask"+(lk.dataset.photo?" photo":"");}});
+$("lkCancel").onclick=function(e){e.stopPropagation();lkIn="";lkDots();lk.className="on"+(lk.dataset.photo?" photo":"")};
 $("lkKeys").addEventListener("click",function(e){
   e.stopPropagation();var b=e.target.closest("button[data-k]");if(!b)return;
   if(Date.now()<lkUntil){$("lkM").textContent="Try again in "+Math.ceil((lkUntil-Date.now())/1000)+" s";return}
