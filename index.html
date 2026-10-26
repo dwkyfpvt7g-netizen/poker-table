@@ -930,6 +930,24 @@ function speakDeal(){
     }
   }catch(e){}
 }
+var spokeNote=false;
+function unlockSpeech(){try{if(window.speechSynthesis&&voiceMode!=="off"){var u=new SpeechSynthesisUtterance(" ");u.volume=0;speechSynthesis.speak(u)}}catch(e){}}
+function announceCard(i){
+  /* called the moment a new card is read: says which player gets it */
+  try{
+    var syn=window.speechSynthesis;if(!syn||voiceMode==="off"||!dealList[i])return;
+    var n=parts().length,need=n*H,l=voiceMode,all=syn.getVoices()||[];
+    var vs=all.filter(function(v){return v.lang&&v.lang.toLowerCase().indexOf(l)===0});
+    if(!vs.length&&l==="ro"){l="en";vs=all.filter(function(v){return v.lang&&v.lang.toLowerCase().indexOf("en")===0});if(!spokeNote){spokeNote=true;setStatus("No Romanian voice on this device, so the cards are read in English.")}}
+    var f=dealList[i],c=cardOf(f),pl=(i%n)+1,tag,txt;
+    if(i<need)tag=l==="ro"?"Jucătorul "+pl:"Player "+pl;
+    else{var j=i-need;tag=l==="ro"?(j<3?"Flop":j===3?"Turn":j===4?"River":"Extra"):(j<3?"Flop":j===3?"Turn":j===4?"River":"Extra")}
+    txt=tag+": "+say(c,l)+".";
+    if(syn.pending)syn.cancel();
+    var u=new SpeechSynthesisUtterance(txt);u.lang=l==="ro"?"ro-RO":"en-US";if(vs.length)u.voice=vs[(i<need?pl-1:0)%vs.length];
+    u.pitch=i<need?0.75+((pl*5)%7)*0.11:1;u.rate=1.05;syn.speak(u);
+  }catch(e){}
+}
 function finishDeal(){
   var n=parts().length,need=n*H;
   if(dealList.length<need){
@@ -1086,7 +1104,7 @@ function scAnalyze(img,live){
   if(scTarget==="deal"){
     var chg=false;scList.slice().sort(function(a,b){return a.px-b.px}).forEach(function(f){
       if(live&&(isWarn(f)||(f.hits||0)<3))return;
-      if(!dealList.some(function(d){return d.label===f.label})){dealList.push(f);chg=true}
+      if(!dealList.some(function(d){return d.label===f.label})){dealList.push(f);chg=true;announceCard(dealList.length-1)}
     });
     if(chg)dlChanged();
   }
@@ -1128,7 +1146,7 @@ function liveLoop(){
   setTimeout(liveLoop,90);
 }
 function liveStart(){
-  if(liveOn)return;
+  if(liveOn)return;unlockSpeech();
   if(!csInit()){$("scMsg").textContent="The card reader could not start.";return}
   if(!navigator.mediaDevices||!navigator.mediaDevices.getUserMedia){
     $("scMsg").textContent="Live camera is not available in this view. Use Take photo, or open the page on its own over HTTPS.";return}
