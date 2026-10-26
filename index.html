@@ -117,6 +117,21 @@ button{font:inherit;color:inherit}
 .scpl button{border:1px solid var(--line);background:var(--card);color:var(--text);border-radius:99px;padding:7px 12px;font-size:13px}
 .scpl button.on{background:var(--blue);color:#fff;border-color:var(--blue)}
 .cpn{font:700 11px -apple-system,sans-serif;background:#c9a24a;color:#2b1a08;border-radius:99px;padding:1px 6px;margin-right:6px}
+.av{position:absolute;left:-5.6cqw;top:-5.6cqw;width:11.2cqw;height:11.2cqw;border-radius:50%;border:.5cqw solid #c9a24a;background:radial-gradient(circle at 40% 30%,#4a4a54,#1c1c21);overflow:hidden;z-index:2;cursor:pointer;box-shadow:0 .6cqw 1.2cqw rgba(0,0,0,.5);display:flex;align-items:center;justify-content:center}
+.av svg{width:112%;height:112%;display:block;margin-top:14%}
+.av.sit{animation:sit .4s ease-out}
+.av.off{opacity:.5;border-style:dashed;background:rgba(0,0,0,.35);color:#f0dfbf;font-size:6cqw}
+.seat.hero .av{border-color:#fff;box-shadow:0 0 0 .8cqw #c9a24a,0 .6cqw 1.4cqw rgba(0,0,0,.55)}
+.plrow{display:flex;align-items:center;justify-content:center;gap:14px;margin:6px 0 0;color:var(--sub);font-size:14px}
+.plrow button{width:34px;height:34px;border-radius:50%;border:1px solid var(--line);background:var(--card);color:var(--text);font-size:20px;line-height:1;padding:0}
+.plrow b{min-width:24px;text-align:center;color:var(--text);font-size:17px}
+.live.big{background:#d93025}
+.clp{background:var(--card);border-radius:14px;padding:12px 14px;margin-top:12px}
+.clh{display:flex;justify-content:space-between;align-items:center;font-weight:700;margin-bottom:8px}
+.clh span{font-weight:500;font-size:13px;color:var(--sub)}
+.clb{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-top:10px}
+.clb button{border:1px solid var(--line);background:var(--bg);color:var(--text);border-radius:10px;padding:10px 4px;font-size:14px;font-weight:600}
+.clb button.pr{background:var(--blue);border-color:var(--blue);color:#fff}
 </style>
 <main>
   <h1 id="ttl">♠ Texas Hold’em</h1>
@@ -124,6 +139,8 @@ button{font:inherit;color:inherit}
   <p class="rule" id="rule"></p>
   <div class="table" id="table"></div>
   <div class="gbar"><button class="go" id="next">Next game</button><button class="go gold" id="stage" disabled>Flop</button></div>
+  <button class="go live big" id="mainLive">Live camera: read the deal</button>
+  <div class="plrow"><span>Players</span><button id="plMinus" aria-label="Fewer players">−</button><b id="plN">10</b><button id="plPlus" aria-label="More players">+</button></div>
   <div class="status" id="status">Press Next game to deal a hand.</div>
   <div class="manual">
   <button class="go scanbtn" id="openScan">Scan cards from a photo</button>
@@ -137,6 +154,9 @@ button{font:inherit;color:inherit}
   <div class="err" id="err"></div>
   <div class="res panel" id="res" hidden></div>
   </div>
+  <div class="clp" id="clPanel" hidden><div class="clh">Card list<span id="clN"></span></div><div class="scchips" id="clChips"></div>
+    <div class="clb"><button class="pr" id="clShow">Show on table</button><button id="clSay">Speak</button><button id="clClear">Clear</button></div></div>
+  <button class="ghost" id="voiceBtn"></button>
   <button class="ghost" id="ndir"></button>
   <button class="ghost" id="reset">Clear table</button>
   <p class="note">Estimates assume random opponent cards. For study and analysis only.</p>
@@ -503,7 +523,7 @@ var pairs=[],TRIPS=[[0,1,2],[0,1,3],[0,1,4],[0,2,3],[0,2,4],[0,3,4],[1,2,3],[1,2
 function buildPairs(){pairs=[];for(var a=0;a<H;a++)for(var b=a+1;b<H;b++)pairs.push([a,b])}
 function unit(){return H===2?1:pairs.length*10}
 function maxOpp(){return Math.min(9,Math.floor(47/H)-1)}
-function oppCount(){return occ.reduce(function(a,b){return a+b},0)}
+function oppCount(){syncOcc();return occ.reduce(function(a,b){return a+b},0)}
 function gname(){return H===2?"Texas Hold’em":"Omaha "+H}
 function heroSet(){for(var i=0;i<H;i++){if(slots[i]===null)return false}return true}
 
@@ -560,14 +580,6 @@ function bgSvg(){
     '<clipPath id="cf"><path d="'+stad(34.8)+'"/></clipPath>'+
     '<pattern id="tp" width="6" height="10.392" patternUnits="userSpaceOnUse"><path d="M0 0L3 5.196L6 10.392M6 0L3 5.196L0 10.392M0 0H6M0 5.196H6M0 10.392H6" fill="none" stroke="#9a8850" stroke-width=".22"/></pattern>'+
     '<linearGradient id="rg" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#2b2b31"/><stop offset=".5" stop-color="#0b0b0d"/><stop offset="1" stop-color="#1c1c20"/></linearGradient></defs>';
-  /* dealer (behind the table, so the table hides the lower body) */
-  s+='<g transform="translate(36 -1) scale(.7)"><g class="dl">'+
-     '<path d="M2 44 Q4 27 20 26 Q36 27 38 44Z" fill="#17171d"/><path d="M14 44 L20 27 L26 44Z" fill="#f4f4f4"/>'+
-     '<path d="M17 29.4 L20 31.2 L23 29.4 V33.2 L20 31.8 L17 33.2Z" fill="#b01c2e"/>'+
-     '<rect x="17.4" y="21" width="5.2" height="6.5" rx="2" fill="#e3b58f"/><ellipse cx="20" cy="14" rx="7.6" ry="8.6" fill="#e8bd96"/>'+
-     '<path d="M12.2 12 Q12 4.4 20 4.2 Q28 4.4 27.8 12 Q25 8.4 20 8.6 Q15 8.4 12.2 12Z" fill="#2a1d14"/>'+
-     '<circle cx="17.2" cy="14.6" r=".9" fill="#222"/><circle cx="22.8" cy="14.6" r=".9" fill="#222"/>'+
-     '<path d="M17.4 18.2 Q20 20.2 22.6 18.2" stroke="#7a3b2a" fill="none" stroke-width="1" stroke-linecap="round"/></g></g>';
   /* black rail with the dealer cut-out */
   s+='<path d="'+stad(40)+'" fill="url(#rg)" mask="url(#mr)"/>';
   s+='<path d="'+stad(39.3)+'" fill="none" stroke="#fff" stroke-opacity=".14" stroke-width=".35" mask="url(#mr)"/><path d="'+stad(40)+'" fill="none" stroke="#6a6a74" stroke-opacity=".7" stroke-width=".45" mask="url(#mr)"/>';
@@ -577,11 +589,9 @@ function bgSvg(){
      '<path d="'+stad(31)+'" fill="#d3cb9d" stroke="#111" stroke-width=".55"/>'+
      '<path d="'+stad(24.5)+'" fill="#f4e8b9" stroke="#111" stroke-width=".55"/>';
   for(var k=0;k<10;k++){if(k===5)continue;var a=sp(k/10,-3.25),b=sp(k/10,3.25);s+='<path d="M'+a.x.toFixed(2)+' '+a.y.toFixed(2)+'L'+b.x.toFixed(2)+' '+b.y.toFixed(2)+'" stroke="#111" stroke-width=".5"/>'}
-  s+='<path d="M41.5 20L62.5 41.5H37.5Z" fill="none"/><path d="M42 22H58L61.5 40.5H38.5Z" fill="#f4e8b9"/>'+
+  s+='<path d="M42 22H58L61.5 40.5H38.5Z" fill="#f4e8b9"/>'+
      '<path d="M42 22L38.5 40.5M58 22L61.5 40.5" stroke="#111" stroke-width=".5"/></g>'+
      '<path d="'+stad(34.8)+'" fill="none" stroke="#b99a4a" stroke-width=".5"/></g>';
-  /* the dealer's deck */
-  s+='<g transform="translate(46.2 29.2)"><rect width="7.6" height="5.2" rx=".8" fill="#fff"/><rect x=".6" y=".6" width="6.4" height="4" rx=".5" fill="#a81f33"/></g>';
   /* own emblem: crown over a spade (not a copy of any table brand) */
   s+='<g transform="translate(50 45.3)" opacity=".8"><path d="M-6.5 3.4L-7.5-3.2L-3.4-.4L0-5.6L3.4-.4L7.5-3.2L6.5 3.4Z" fill="#17140c"/>'+
      '<rect x="-6.6" y="4" width="13.2" height="1.5" rx=".5" fill="#17140c"/><circle cx="-7.5" cy="-3.6" r=".9" fill="#17140c"/><circle cx="0" cy="-6" r=".9" fill="#17140c"/><circle cx="7.5" cy="-3.6" r=".9" fill="#17140c"/></g>';
@@ -629,50 +639,57 @@ function fcs(arr,base){
 
 /* ---- seats ---- */
 function geo(k){
-  /* ring index: 0 = you (bottom right), then clockwise on screen; 10 seats, the dealer sits in the top gap */
-  var f=(0.95+k*0.1)%1,c=sp(f,16.25),kk=sp(f,3.75),dy=c.ny<-0.3?-9.5:9.5;
-  return {f:f,x:c.x,y:c.y,kx:kk.x-c.x,ky:kk.y-c.y,nx:-c.nx*6.5,ny:dy,up:dy<0,rot:Math.atan2(c.ny,c.nx)*180/Math.PI-90};
+  var sid=(me+k)%10,f=(0.05+0.1*sid)%1,c=sp(f,13),kk=sp(f,1),dy=c.ny<-0.3?-9:9;
+  return {f:f,sid:sid,x:c.x,y:c.y,kx:kk.x-c.x,ky:kk.y-c.y,nx:-c.nx*5.5,ny:dy,up:dy<0};
 }
 function seatSty(p){return "left:"+p.x.toFixed(2)+"%;top:"+(p.y/1.48).toFixed(2)+"%;--kx:"+p.kx.toFixed(2)+";--ky:"+p.ky.toFixed(2)+";--nx:"+p.nx.toFixed(2)+";--ny:"+p.ny.toFixed(2)}
 function seatHtml(i){
   var p=geo(i+1),on=occ[i],g=game,sd=g&&g.stage===4,pi=on&&g?g.pidx[i]:0,cls="seat"+(on?" on":"");
   if(on&&sd)cls+=g.win[pi]?" win":" lose";
-  var h='<div class="'+cls+'" style="'+seatSty(p)+'">'+
-    '<div class="chr" data-s="'+i+'" style="transform:rotate('+p.rot.toFixed(1)+'deg)">'+chairSvg()+'</div>';
-  if(!on)return h+'<div class="plus">+</div></div>';
-  h+='<div class="ppl'+(i===justSat?" sit":"")+'">'+person(i+1)+'</div>';
+  var h='<div class="'+cls+'" style="'+seatSty(p)+'">';
+  if(!on)return h+'<div class="av off" data-s="'+p.sid+'">+</div></div>';
+  h+='<div class="av'+(i===justSat?" sit":"")+'" data-s="'+p.sid+'">'+person(p.sid)+'</div>';
   h+='<div class="cg">'+fcs(g?g.oc[i]:null,i*H)+'</div>';
-  h+='<div class="np '+(p.up?"a":"b")+'"><b>'+pnb(i+1)+'Opp '+(i+1)+'</b>'+(g?'<i class="eq">'+(sd?hname(g.scores[pi]):g.eq[pi].toFixed(0)+"%")+'</i>':"")+'</div></div>';
+  h+='<div class="np '+(p.up?"a":"b")+'"><b>'+pnb(i+1)+sname(i)+'</b>'+(g?'<i class="eq">'+(sd?hname(g.scores[pi]):g.eq[pi].toFixed(0)+"%")+'</i>':"")+'</div></div>';
   return h;
 }
 function heroSeat(){
   var g=game,sd=g&&g.stage===4,p=geo(0);
-  return '<div class="seat hero on'+(sd&&g.win[0]?" win":"")+'" style="'+seatSty(p)+'"><div class="chr" style="transform:rotate('+p.rot.toFixed(1)+'deg)">'+chairSvg()+'</div><div class="ppl">'+person(0)+'</div>'+
-    '<div class="np '+(p.up?"a":"b")+'"><b>'+pnb(0)+'YOU</b>'+(g?'<i class="eq">'+(sd?hname(g.scores[0]):g.eq[0].toFixed(0)+"%")+'</i>':"")+'</div></div>';
+  return '<div class="seat hero on'+(sd&&g.win[0]?" win":"")+'" style="'+seatSty(p)+'"><div class="av" data-s="'+p.sid+'">'+person(p.sid)+'</div>'+
+    '<div class="np '+(p.up?"a":"b")+'"><b>'+pnb(0)+'YOU · '+(p.sid+1)+'</b>'+(g?'<i class="eq">'+(sd?hname(g.scores[0]):g.eq[0].toFixed(0)+"%")+'</i>':"")+'</div></div>';
 }
-var dlr=0,ndir=-1,NM={},hands=0;
-function parts(){var a=[0],i;for(i=0;i<9;i++){if(occ[i])a.push(i+1)}return a}
+var dlr=0,ndir=-1,NM={},hands=0,me=9,dseat=9,act=[1,1,1,1,1,1,1,1,1,1];
+function syncOcc(){for(var i=0;i<9;i++)occ[i]=act[(me+i+1)%10]?1:0}
+function actN(){return act.reduce(function(a,b){return a+b},0)}
+function capN(){return Math.min(10,Math.floor(47/H))}
+function sname(i){return "Seat "+((((me+i+1)%10))+1)}
+function setMe(sid){
+  me=sid;syncOcc();
+  var r=(dseat-me+10)%10;
+  dlr=(r===0||occ[r-1])?r:0;dseat=(me+dlr)%10;
+}
+function parts(){syncOcc();var a=[0],i;for(i=0;i<9;i++){if(occ[i])a.push(i+1)}return a}
 function numbering(){
   var p=parts(),n=p.length,k=p.indexOf(dlr),m={},j;
   if(k<0){dlr=0;k=0}
   for(j=1;j<=n;j++)m[p[(((k+ndir*j)%n)+n)%n]]=j;
   return m;
 }
-function nmOf(k){return k===0?"you":"Opp "+k}
+function nmOf(k){return k===0?"you":sname(k-1)}
 function pnb(k){return NM[k]?'<em class="pn">'+NM[k]+'</em>':""}
 function dealerHtml(){
-  var f=(0.95+dlr*0.1)%1,q=sp(f,-1.2),t=sp(f+0.002,-1.2),tx=t.x-q.x,ty=t.y-q.y,m=Math.hypot(tx,ty)||1,x=q.x+tx/m*9,y=q.y+ty/m*9;
+  var f=geo(dlr).f,q=sp(f,-1.2),t=sp(f+0.002,-1.2),tx=t.x-q.x,ty=t.y-q.y,m=Math.hypot(tx,ty)||1,x=q.x+tx/m*9,y=q.y+ty/m*9;
   return '<button class="dbtn" data-d="1" aria-label="Dealer button" style="left:'+x.toFixed(2)+'%;top:'+(y/1.48).toFixed(2)+'%">DEALER</button>';
 }
 function moveDealer(step){
   var p=parts(),k=p.indexOf(dlr);if(k<0)k=0;
-  dlr=p[(k+step+p.length)%p.length];
+  dlr=p[(k+step+p.length)%p.length];dseat=(me+dlr)%10;
 }
 function dealerNote(){
   NM=numbering();var f=0,k;for(k in NM){if(NM[k]===1)f=+k}
   setStatus("Dealer button: "+nmOf(dlr)+". Player 1 is "+nmOf(f)+".");
 }
-function render(){NM=numbering();
+function render(){syncPl();NM=numbering();saveCfg();
   var g=game,i,h='<svg class="bg'+(dealAnim?" dealing":"")+'" viewBox="0 0 100 148">'+bgSvg()+'</svg>';
   for(i=0;i<9;i++)h+=seatHtml(i);
   h+=heroSeat();h+=dealerHtml();
@@ -692,22 +709,39 @@ function setStatus(t){$("status").textContent=t}
 
 $("table").addEventListener("click",function(e){
   if(!running&&e.target.closest(".dbtn")){moveDealer(1);render();dealerNote();return}
-  if(running||game)return;
-  var c=e.target.closest("[data-i]");
+  if(running)return;
+  var c=!game&&e.target.closest("[data-i]");
   if(c){openPicker(+c.getAttribute("data-i"));return}
   var s=e.target.closest("[data-s]");
-  if(s){
-    var i=+s.getAttribute("data-s");
-    if(occ[i]&&oppCount()===1){setStatus("At least one opponent must stay at the table.");return}
-    if(!occ[i]&&oppCount()>=maxOpp()){setStatus(gname()+" supports up to "+maxOpp()+" opponents.");return}
-    occ[i]=occ[i]?0:1;justSat=occ[i]?i:-1;reset();render();
+  if(s&&(!game||game.fromDeal)){
+    var sid=+s.getAttribute("data-s");
+    if(sid===me)return;
+    if(!act[sid]){
+      if(actN()>=capN()){setStatus(gname()+" supports up to "+capN()+" players.");return}
+      act[sid]=1;justSat=-1;reset();render();setStatus("Seat "+(sid+1)+" joined. Tap a seat to play from there.");return;
+    }
+    setMe(sid);reset();
+    if(game&&game.fromDeal)dealToTable(true);else{render();setStatus("You are now at seat "+(sid+1)+".")}
   }
 });
+$("plPlus").onclick=function(){
+  if(running||actN()>=capN())return;
+  for(var s=0;s<10;s++){if(!act[s]){act[s]=1;break}}
+  game=null;slots=slots.map(function(){return null});syncPl();reset();setStatus("Players: "+actN()+".");render();
+};
+$("plMinus").onclick=function(){
+  if(running||actN()<=2)return;
+  for(var s=9;s>=0;s--){if(act[s]&&s!==me){act[s]=0;break}}
+  syncOcc();var r=(dseat-me+10)%10;if(r&&!occ[r-1]){dlr=0;dseat=me}
+  game=null;slots=slots.map(function(){return null});syncPl();reset();setStatus("Players: "+actN()+".");render();
+};
+function syncPl(){syncOcc();$("plN").textContent=actN();$("plPlus").disabled=actN()>=capN();$("plMinus").disabled=actN()<=2}
 
 /* ---- game selector ---- */
 function setMode(n){
   H=n;game=null;slots=[];for(var i=0;i<H+5;i++)slots.push(null);
-  while(oppCount()>maxOpp()){for(var k=8;k>=0;k--){if(occ[k]){occ[k]=0;break}}}
+  while(actN()>capN()){for(var k=9;k>=0;k--){if(act[k]&&k!==me){act[k]=0;break}}}
+  syncPl();
   buildPairs();
   Array.prototype.forEach.call($("gsel").children,function(b){b.classList.toggle("on",+b.getAttribute("data-h")===H)});
   var m=H===2?0:1,tb=$("trials").children;
@@ -784,7 +818,7 @@ function finish(w,t,l,eq,n){
 /* ---- game simulation ---- */
 var NAMES=["High Card","Pair","Two Pair","Three of a Kind","Straight","Flush","Full House","Four of a Kind","Straight Flush"],STG=["Flop","Turn","River","Showdown"],STN=["PRE-FLOP","FLOP","TURN","RIVER","SHOWDOWN"];
 function hname(s){var c=Math.floor(s/B);return c===8&&s%B===enc([14])?"Royal Flush":NAMES[c]}
-function who(p){return p===0?"You":"Opp "+(game.seats[p-1]+1)}
+function who(p){return p===0?"You":sname(game.seats[p-1])}
 function stageChip(){chip='<b style="font-size:6cqw">'+STN[game.stage]+'</b>'}
 function evalGame(){
   var g=game,holes=[g.hero],known={},bd=slots.slice(H).filter(nn),i,n;
@@ -805,7 +839,7 @@ function evalGame(){
   if(!miss){g.scores=sc2;var b2=Math.max.apply(null,sc2);g.win=sc2.map(function(s){return s===b2})}
 }
 function nextGame(){
-  if(running)return;
+  if(running)return;syncOcc();
   if(hands++>0)moveDealer(1);
   var d=[],i,j,t,q;for(i=0;i<52;i++)d.push(i);
   for(i=51;i>0;i--){j=Math.floor(Math.random()*(i+1));t=d[i];d[i]=d[j];d[j]=t}
@@ -847,20 +881,71 @@ function scTargets(){return scTarget==="hand"?range(0,H):range(H,H+5)}
 function cardOf(f){var r=RV[f.rank]||parseInt(f.rank,10);return ((r-2)<<2)|SI[f.suit]}
 function chipLab(f){return f.rank+SUITS[SI[f.suit]]}
 function isWarn(f){return f.conf<0.9&&f.corners<2}
-function dealStage(j){return j===0?"Flop":j===1?"Flop":j===2?"Flop":j===3?"Turn":j===4?"River":"extra"}
-function renderDeal(){
-  var n=parts().length,need=n*H,h="";NM=numbering();
+function saveCfg(){try{localStorage.setItem("pt_cfg",JSON.stringify({act:act,me:me,dseat:dseat,ndir:ndir}))}catch(e){}}
+function loadCfg(){try{var c=JSON.parse(localStorage.getItem("pt_cfg")||"null");if(c&&c.act&&c.act.length===10&&c.act[c.me]){act=c.act.map(function(v){return v?1:0});me=c.me;dseat=act[c.dseat]?c.dseat:c.me;ndir=c.ndir<0?-1:1;dlr=(dseat-me+10)%10;syncOcc()}}catch(e){}}
+function saveDeal(){try{localStorage.setItem("pt_deal",JSON.stringify(dealList.map(function(f){return {rank:f.rank,suit:f.suit,label:f.label,conf:f.conf,corners:f.corners}})))}catch(e){}}
+function loadDeal(){try{var a=JSON.parse(localStorage.getItem("pt_deal")||"[]");if(Array.isArray(a))dealList=a.filter(function(f){return f&&f.rank&&f.suit&&f.label})}catch(e){}}
+function dlChanged(){saveDeal();renderCl()}
+function dealChips(removable){
+  var n=parts().length,need=n*H,h="";
   dealList.forEach(function(f,i){
     var tag=i<need?"P"+((i%n)+1):dealStage(i-need);
-    h+='<span class="chp'+((SI[f.suit]===1||SI[f.suit]===2)?" r":"")+(isWarn(f)?" warn":"")+'"><small class="cpn">'+(i+1)+" \u2192 "+tag+'</small>'+chipLab(f)+'<button data-x="'+i+'" aria-label="Remove '+chipLab(f)+'">\u00D7</button></span>';
+    h+='<span class="chp'+((SI[f.suit]===1||SI[f.suit]===2)?" r":"")+(isWarn(f)?" warn":"")+'"><small class="cpn">'+(i+1)+" \u2192 "+tag+'</small>'+chipLab(f)+(removable?'<button data-x="'+i+'" aria-label="Remove '+chipLab(f)+'">\u00D7</button>':'')+'</span>';
   });
+  return h;
+}
+function renderCl(){
+  var n=parts().length;
+  $("clPanel").hidden=!dealList.length;
+  $("clN").textContent=dealList.length+" cards \u00B7 "+n+" players \u00D7 "+H+" + board";
+  $("clChips").innerHTML=dealChips(false);
+}
+var voiceMode="ro";
+try{voiceMode=localStorage.getItem("pt_voice")||"ro"}catch(e){}
+function voiceLabel(){$("voiceBtn").textContent="Voice: "+(voiceMode==="ro"?"Romanian":voiceMode==="en"?"English":"off")+" (tap to change)"}
+var RN={ro:{14:"as",13:"rege",12:"damă",11:"valet",10:"zece",9:"nouă",8:"opt",7:"șapte",6:"șase",5:"cinci",4:"patru",3:"trei",2:"doi"},
+        en:{14:"ace",13:"king",12:"queen",11:"jack",10:"ten",9:"nine",8:"eight",7:"seven",6:"six",5:"five",4:"four",3:"three",2:"two"}};
+var SN={ro:["treflă","caro","cupă","pică"],en:["clubs","diamonds","hearts","spades"]};
+var HN={ro:["carte mare","pereche","două perechi","set","chintă","culoare","full","careu","chintă de culoare"],en:["high card","a pair","two pair","three of a kind","a straight","a flush","a full house","four of a kind","a straight flush"]};
+function say(c,l){return RN[l][rk(c)]+(l==="ro"?" de ":" of ")+SN[l][su(c)]}
+function speakDeal(){
+  var g=game;if(!g||!window.speechSynthesis||voiceMode==="off")return;
+  try{
+    var syn=window.speechSynthesis,all=syn.getVoices()||[],l=voiceMode,vs=all.filter(function(v){return v.lang&&v.lang.toLowerCase().indexOf(l)===0});
+    if(!vs.length&&l==="ro"){l="en";vs=all.filter(function(v){return v.lang&&v.lang.toLowerCase().indexOf("en")===0});setStatus("No Romanian voice on this device, so the cards are read in English.")}
+    syn.cancel();
+    var order=[],k;for(k in NM)order.push({k:+k,n:NM[k]});order.sort(function(a,b){return a.n-b.n});
+    function out(t,i,pitch){var u=new SpeechSynthesisUtterance(t);u.lang=l==="ro"?"ro-RO":"en-US";if(vs.length)u.voice=vs[i%vs.length];u.pitch=pitch;u.rate=.95;syn.speak(u)}
+    order.forEach(function(o,idx){
+      var h=o.k===0?g.hero:g.oc[o.k-1];if(!h)return;
+      var who=l==="ro"?"Jucătorul "+o.n+(o.k===0?", tu":""):"Player "+o.n+(o.k===0?", you":"");
+      out(who+": "+h.map(function(c){return say(c,l)}).join(l==="ro"?" și ":" and ")+".",o.n-1,0.75+((o.n*5)%7)*0.11);
+    });
+    var bd=slots.slice(H).filter(nn);
+    if(bd.length)out((l==="ro"?"Pe masă: ":"On the table: ")+bd.map(function(c){return say(c,l)}).join(", ")+".",0,1);
+    if(g.stage===4&&g.win){
+      var w=[];g.win.forEach(function(v,p){if(v)w.push(p)});
+      var numOf=function(p){return NM[p===0?0:g.seats[p-1]+1]},hn=HN[l][Math.floor(g.scores[w[0]]/B)];
+      out(w.length===1?(l==="ro"?"Câștigă jucătorul "+numOf(w[0])+" cu "+hn+".":"Player "+numOf(w[0])+" wins with "+hn+"."):(l==="ro"?"Egalitate între jucătorii "+w.map(numOf).join(" și ")+".":"Split pot between players "+w.map(numOf).join(" and ")+"."),0,1);
+    }
+  }catch(e){}
+}
+function finishDeal(){
+  var n=parts().length,need=n*H;
+  if(dealList.length<need){
+    $("scMsg").textContent="Read "+dealList.length+" cards, but "+need+" are needed for "+n+" players with "+H+" cards each. Press Live camera to keep reading, or lower the number of players.";scRender();return}
+  dealToTable();speakDeal();
+}
+function dealStage(j){return j===0?"Flop":j===1?"Flop":j===2?"Flop":j===3?"Turn":j===4?"River":"extra"}
+function renderDeal(){
+  var n=parts().length,need=n*H,h=dealChips(true);NM=numbering();
   $("scChips").innerHTML=h;$("scPl").innerHTML="";
   $("scBtn").textContent="Dealing to "+n+" players, "+H+" cards each. Cards 1\u2013"+need+" are hands (P1 first), then the board.";
   $("scUse").disabled=dealList.length<need;
   $("scUse").textContent=dealList.length<need?"Need "+need+" cards ("+dealList.length+" so far)":"Deal "+dealList.length+" cards to the table";
-  if(liveOn)$("scMsg").textContent="Live: "+dealList.length+" card"+(dealList.length===1?"":"s")+" in the deal list. Deal the next card face up.";
+  if(liveOn)$("scMsg").textContent=dealList.length?"Reading: "+dealList.length+" card"+(dealList.length===1?"":"s")+" so far. Press Stop after the last card.":"Waiting for the first card\u2026";
 }
-function dealToTable(){
+function dealToTable(quiet){
   var p=parts(),n=p.length,need=n*H,L=dealList.map(cardOf),hands={},i,pn;
   NM=numbering();
   if(L.length<need){setStatus("The deal list has "+L.length+" cards, "+need+" needed.");return}
@@ -874,7 +959,7 @@ function dealToTable(){
   if(g.stage===4){var w=[];g.win.forEach(function(v,k){if(v)w.push(k)});var hn=hname(g.scores[w[0]]);
     setStatus(w.length===1?who(w[0])+(w[0]===0?" win":" wins")+" with "+hn:"Split pot: "+w.map(who).join(", ")+" ("+hn+")")}
   else setStatus("Dealt from your list: "+n+" players"+(cnt?", "+STN[g.stage].toLowerCase():", pre-flop")+". Deal more cards and press the button again to update.");
-  closeScan();render();
+  closeScan();render();renderCl();
 }
 function scRender(){
   if(scTarget==="deal"){renderDeal();return}
@@ -999,10 +1084,11 @@ function scAnalyze(img,live){
   if(btn){scList=scList.filter(function(f){return !f.spots.some(function(sp){return Math.hypot((sp.box[0]+sp.box[2])/2-btn.x,(sp.box[1]+sp.box[3])/2-btn.y)<btn.r*1.15})})}
   scNumber();
   if(scTarget==="deal"){
-    scList.slice().sort(function(a,b){return a.px-b.px}).forEach(function(f){
+    var chg=false;scList.slice().sort(function(a,b){return a.px-b.px}).forEach(function(f){
       if(live&&(isWarn(f)||(f.hits||0)<3))return;
-      if(!dealList.some(function(d){return d.label===f.label}))dealList.push(f);
+      if(!dealList.some(function(d){return d.label===f.label})){dealList.push(f);chg=true}
     });
+    if(chg)dlChanged();
   }
   cx.lineWidth=Math.max(2,pw/320);cx.font="bold "+Math.max(14,Math.round(pw/42))+"px Georgia,serif";cx.textBaseline="bottom";
   cur.forEach(function(f){
@@ -1064,7 +1150,7 @@ function liveStart(){
     $("scMsg").textContent=n==="NotAllowedError"||n==="SecurityError"?"The camera is blocked here. Use Take photo, or open the page on its own over HTTPS and allow the camera.":"Could not start the camera"+(n?" ("+n+")":"")+". Use Take photo instead.";
   });
 }
-$("scLive").onclick=function(){if(liveOn){liveStop("Stopped. "+(scList.length?"Press Add to table, or Live camera to read again.":""))}else liveStart()};
+$("scLive").onclick=function(){if(liveOn){if(scTarget==="deal"){liveStop("");finishDeal()}else liveStop("Stopped. "+(scList.length?"Press Add to table, or Live camera to read again.":""))}else liveStart()};
 $("scFlip").onclick=function(){
   facing=facing==="user"?"environment":"user";
   $("scFlip").textContent=facing==="user"?"Front camera":"Back camera";
@@ -1072,17 +1158,32 @@ $("scFlip").onclick=function(){
 };
 $("scMono").onclick=function(){monoOn=!monoOn;this.setAttribute("aria-pressed",monoOn);this.textContent="Black & white view: "+(monoOn?"On":"Off")};
 $("scPl").addEventListener("click",function(e){var v=e.target.getAttribute&&e.target.getAttribute("data-p");if(v===null||v===undefined)return;scSel=+v;scRender()});
+$("mainLive").onclick=function(){
+  if(running)return;
+  scTarget="deal";Array.prototype.forEach.call($("scTarget").children,function(b){b.classList.toggle("on",b.getAttribute("data-t")==="deal")});
+  dealList=[];hist=[];bhist=[];dlChanged();
+  $("scView").classList.remove("has");$("scan").classList.add("open");scRender();
+  liveStart();
+};
+$("clShow").onclick=function(){dealToTable(true)};
+$("clSay").onclick=function(){
+  if(window.speechSynthesis&&speechSynthesis.speaking){speechSynthesis.cancel();return}
+  if(!game||!game.fromDeal)dealToTable(true);
+  speakDeal();
+};
+$("clClear").onclick=function(){dealList=[];dlChanged();if(game&&game.fromDeal){game=null;slots=slots.map(function(){return null});reset();setStatus("Card list cleared.");render()}};
+$("voiceBtn").onclick=function(){voiceMode=voiceMode==="ro"?"en":voiceMode==="en"?"off":"ro";try{localStorage.setItem("pt_voice",voiceMode)}catch(e){}voiceLabel();if(voiceMode==="off"&&window.speechSynthesis)speechSynthesis.cancel()};
 $("openScan").onclick=openScan;
 $("scCancel").onclick=closeScan;
 $("scan").addEventListener("click",function(e){if(e.target===$("scan"))closeScan()});
-$("scClear").onclick=function(){if(scTarget==="deal")dealList=[];hist=[];bhist=[];btn=null;scPlayers=[];scSel=-1;scList=[];$("scView").classList.remove("has");$("scMsg").textContent="";scRender()};
+$("scClear").onclick=function(){if(scTarget==="deal"){dealList=[];dlChanged()}hist=[];bhist=[];btn=null;scPlayers=[];scSel=-1;scList=[];$("scView").classList.remove("has");$("scMsg").textContent="";scRender()};
 $("scTarget").addEventListener("click",function(e){
   var t=e.target.getAttribute&&e.target.getAttribute("data-t");if(!t)return;
   scTarget=t;Array.prototype.forEach.call($("scTarget").children,function(b){b.classList.toggle("on",b===e.target)});scRender();
 });
 $("scChips").addEventListener("click",function(e){
   var x=e.target.getAttribute&&e.target.getAttribute("data-x");if(x===null||x===undefined)return;
-  (scTarget==="deal"?dealList:scList).splice(+x,1);scRender();
+  (scTarget==="deal"?dealList:scList).splice(+x,1);if(scTarget==="deal")dlChanged();scRender();
 });
 ["scCam","scLib"].forEach(function(id){$(id).addEventListener("change",function(){var f=this.files&&this.files[0];this.value="";scProcess(f)})});
 $("scUse").onclick=function(){
@@ -1096,6 +1197,6 @@ $("scUse").onclick=function(){
   setStatus(skipped?skipped+" scanned card"+(skipped>1?"s were":" was")+" already on the table and skipped.":"Cards added. Press Calculate Equity.");
 };
 
-setMode(2);
+loadDeal();loadCfg();voiceLabel();setMode(2);renderCl();
 })();
 </script>
