@@ -153,6 +153,7 @@ button{font:inherit;color:inherit}
       <button class="go sbtn live" id="scLive">Live camera</button>
       <button class="go sbtn alt" id="scFlip" disabled>Back camera</button>
     </div>
+    <button class="go sbtn alt" id="scMono" aria-pressed="true">Black &amp; white view: On</button>
     <input type="file" accept="image/*" capture="environment" id="scCam" hidden>
     <input type="file" accept="image/*" id="scLib" hidden>
     <div class="scchips" id="scChips"></div>
@@ -768,7 +769,7 @@ function advance(){
 $("next").onclick=nextGame;$("stage").onclick=advance;
 
 /* ---- photo scanner ---- */
-var liveN=0,hist=[],liveOn=false,stream=null,video=null,facing="environment";
+var monoOn=true,liveN=0,hist=[],liveOn=false,stream=null,video=null,facing="environment";
 var scTarget="hand",scList=[],scBusy=false,csReady=false;
 var RV={A:14,K:13,Q:12,J:11,"10":10},SI={C:0,D:1,H:2,S:3};
 function csInit(){
@@ -817,6 +818,7 @@ function scAnalyze(img,live){
   var pw=Math.max(8,Math.round(iw*base)),ph=Math.max(8,Math.round(ih*base));
   var cv=$("scCanvas");cv.width=pw;cv.height=ph;
   var cx=cv.getContext("2d");cx.drawImage(img,0,0,pw,ph);
+  if(monoOn){var id=cx.getImageData(0,0,pw,ph),d=id.data,q,gy;for(q=0;q<d.length;q+=4){gy=(d[q]*77+d[q+1]*151+d[q+2]*28)>>8;d[q]=d[q+1]=d[q+2]=gy}cx.putImageData(id,0,0)}
   var found={};
   (live&&(liveN++%3)?[1]:[1,0.62]).forEach(function(k){
     var w=Math.round(pw*k),h=Math.round(ph*k),tc=document.createElement("canvas");tc.width=w;tc.height=h;
@@ -899,6 +901,7 @@ $("scFlip").onclick=function(){
   $("scFlip").textContent=facing==="user"?"Front camera":"Back camera";
   if(liveOn){liveStop();liveStart()}
 };
+$("scMono").onclick=function(){monoOn=!monoOn;this.setAttribute("aria-pressed",monoOn);this.textContent="Black & white view: "+(monoOn?"On":"Off")};
 $("openScan").onclick=openScan;
 $("scCancel").onclick=closeScan;
 $("scan").addEventListener("click",function(e){if(e.target===$("scan"))closeScan()});
