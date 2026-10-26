@@ -152,7 +152,7 @@ button{font:inherit;color:inherit}
 <div class="sheet" id="scan"><div class="in">
   <header><button id="scCancel">Close</button><span>Scan cards</span><button id="scClear">Clear</button></header>
   <div class="scbody">
-    <div class="seg" id="scTarget"><button data-t="hand" class="on">My hand</button><button data-t="board">Board</button></div>
+    <div class="seg" id="scTarget"><button data-t="hand" class="on">My hand</button><button data-t="board">Board</button><button data-t="deal">Deal list</button></div>
     <div class="scview" id="scView"><canvas id="scCanvas"></canvas><p>Lay the cards face up on a table in good light. Each top-left corner (number and suit) must be visible and sharp. Cards may overlap or sit at any angle.</p></div>
     <div class="scbtns">
       <label class="go sbtn" for="scCam">Take photo</label>
@@ -660,7 +660,7 @@ function render(){NM=numbering();
   $("go").disabled=running||!heroSet();
   lastIdx=[];dealAnim=false;justSat=-1;
   document.querySelector("main").classList.toggle("game",!!g);
-  $("stage").disabled=!g||g.stage>=4;$("stage").textContent=g?STG[Math.min(g.stage,3)]:"Flop";
+  $("stage").disabled=!g||g.stage>=4||!!(g&&g.fromDeal);$("stage").textContent=g?STG[Math.min(g.stage,3)]:"Flop";
 }
 function reset(){chip="";$("res").hidden=true;$("err").textContent=""}
 function setStatus(t){$("status").textContent=t}
@@ -809,7 +809,7 @@ function advance(){
 $("next").onclick=nextGame;$("stage").onclick=advance;
 
 /* ---- photo scanner ---- */
-var scPlayers=[],scSel=-1,btn=null,bhist=[],monoOn=true,liveN=0,hist=[],liveOn=false,stream=null,video=null,facing="environment";
+var dealList=[],scPlayers=[],scSel=-1,btn=null,bhist=[],monoOn=true,liveN=0,hist=[],liveOn=false,stream=null,video=null,facing="environment";
 var scTarget="hand",scList=[],scBusy=false,csReady=false;
 var RV={A:14,K:13,Q:12,J:11,"10":10},SI={C:0,D:1,H:2,S:3};
 function csInit(){
@@ -822,7 +822,37 @@ function scTargets(){return scTarget==="hand"?range(0,H):range(H,H+5)}
 function cardOf(f){var r=RV[f.rank]||parseInt(f.rank,10);return ((r-2)<<2)|SI[f.suit]}
 function chipLab(f){return f.rank+SUITS[SI[f.suit]]}
 function isWarn(f){return f.conf<0.9&&f.corners<2}
+function dealStage(j){return j===0?"Flop":j===1?"Flop":j===2?"Flop":j===3?"Turn":j===4?"River":"extra"}
+function renderDeal(){
+  var n=parts().length,need=n*H,h="";NM=numbering();
+  dealList.forEach(function(f,i){
+    var tag=i<need?"P"+((i%n)+1):dealStage(i-need);
+    h+='<span class="chp'+((SI[f.suit]===1||SI[f.suit]===2)?" r":"")+(isWarn(f)?" warn":"")+'"><small class="cpn">'+(i+1)+" \u2192 "+tag+'</small>'+chipLab(f)+'<button data-x="'+i+'" aria-label="Remove '+chipLab(f)+'">\u00D7</button></span>';
+  });
+  $("scChips").innerHTML=h;$("scPl").innerHTML="";
+  $("scBtn").textContent="Dealing to "+n+" players, "+H+" cards each. Cards 1\u2013"+need+" are hands (P1 first), then the board.";
+  $("scUse").disabled=dealList.length<need;
+  $("scUse").textContent=dealList.length<need?"Need "+need+" cards ("+dealList.length+" so far)":"Deal "+dealList.length+" cards to the table";
+  if(liveOn)$("scMsg").textContent="Live: "+dealList.length+" card"+(dealList.length===1?"":"s")+" in the deal list. Deal the next card face up.";
+}
+function dealToTable(){
+  var p=parts(),n=p.length,need=n*H,L=dealList.map(cardOf),hands={},i,pn;
+  NM=numbering();
+  if(L.length<need){setStatus("The deal list has "+L.length+" cards, "+need+" needed.");return}
+  for(i=0;i<need;i++){pn=(i%n)+1;(hands[pn]=hands[pn]||[]).push(L[i])}
+  var bd=L.slice(need,need+5),cnt=bd.length>=5?5:bd.length>=4?4:bd.length>=3?3:0;bd=bd.slice(0,cnt);
+  var g={stage:cnt===0?0:cnt===3?1:cnt===4?2:4,hero:hands[NM[0]],oc:{},seats:[],pidx:{},board:bd.slice(),fromDeal:true};
+  for(i=0;i<8;i++){if(occ[i]){g.oc[i]=hands[NM[i+1]];g.pidx[i]=g.seats.length+1;g.seats.push(i)}}
+  slots=g.hero.concat(bd);while(slots.length<H+5)slots.push(null);
+  game=g;reset();dealAnim=true;lastIdx=[];for(i=0;i<slots.length;i++){if(slots[i]!==null)lastIdx.push(i)}
+  evalGame();stageChip();
+  if(g.stage===4){var w=[];g.win.forEach(function(v,k){if(v)w.push(k)});var hn=hname(g.scores[w[0]]);
+    setStatus(w.length===1?who(w[0])+(w[0]===0?" win":" wins")+" with "+hn:"Split pot: "+w.map(who).join(", ")+" ("+hn+")")}
+  else setStatus("Dealt from your list: "+n+" players"+(cnt?", "+STN[g.stage].toLowerCase():", pre-flop")+". Deal more cards and press the button again to update.");
+  closeScan();render();
+}
 function scRender(){
+  if(scTarget==="deal"){renderDeal();return}
   var h="";
   scList.forEach(function(f,i){
     h+='<span class="chp'+((SI[f.suit]===1||SI[f.suit]===2)?" r":"")+(isWarn(f)?" warn":"")+'">'+(f.pl?'<small class="cpn">P'+f.pl+'</small>':'')+chipLab(f)+'<button data-x="'+i+'" aria-label="Remove '+chipLab(f)+'">×</button></span>';
@@ -838,7 +868,7 @@ function scRender(){
   $("scUse").textContent=scList.length?"Add "+Math.min(scList.length,cap)+(scList.length>cap?" of "+scList.length:"")+" to "+(scTarget==="hand"?"my hand":"the board"):"Add to table";
 }
 function openScan(){
-  scTarget=slots.slice(0,H).every(nn)?"board":"hand";
+  if(scTarget!=="deal")scTarget=slots.slice(0,H).every(nn)?"board":"hand";
   Array.prototype.forEach.call($("scTarget").children,function(b){b.classList.toggle("on",b.getAttribute("data-t")===scTarget)});
   $("scan").classList.add("open");scRender();
 }
@@ -936,13 +966,19 @@ function scAnalyze(img,live){
     hist.push(found);if(hist.length>6)hist.shift();
     var cnt={};hist.forEach(function(h){Object.keys(h).forEach(function(l){cnt[l]=(cnt[l]||0)+1})});
     scList=Object.keys(cnt).filter(function(l){return cnt[l]>=2}).map(function(l){
-      for(var i=hist.length-1;i>=0;i--)if(hist[i][l])return hist[i][l]});
+      for(var i=hist.length-1;i>=0;i--)if(hist[i][l]){hist[i][l].hits=cnt[l];return hist[i][l]}});
   }else scList=cur;
   scList.sort(function(a,b){return a.spots[0].cx-b.spots[0].cx});
   var bnow=findButton(img,pw,ph);
   if(live){bhist.push(bnow);if(bhist.length>6)bhist.shift();var bc=0,bl=null;bhist.forEach(function(v){if(v){bc++;bl=v}});btn=bc>=2?bl:null}else btn=bnow;
   if(btn){scList=scList.filter(function(f){return !f.spots.some(function(sp){return Math.hypot((sp.box[0]+sp.box[2])/2-btn.x,(sp.box[1]+sp.box[3])/2-btn.y)<btn.r*1.15})})}
   scNumber();
+  if(scTarget==="deal"){
+    scList.slice().sort(function(a,b){return a.px-b.px}).forEach(function(f){
+      if(live&&(isWarn(f)||(f.hits||0)<3))return;
+      if(!dealList.some(function(d){return d.label===f.label}))dealList.push(f);
+    });
+  }
   cx.lineWidth=Math.max(2,pw/320);cx.font="bold "+Math.max(14,Math.round(pw/42))+"px Georgia,serif";cx.textBaseline="bottom";
   cur.forEach(function(f){
     cx.strokeStyle=isWarn(f)?"#ff9f0a":"#30d158";
@@ -1014,17 +1050,18 @@ $("scPl").addEventListener("click",function(e){var v=e.target.getAttribute&&e.ta
 $("openScan").onclick=openScan;
 $("scCancel").onclick=closeScan;
 $("scan").addEventListener("click",function(e){if(e.target===$("scan"))closeScan()});
-$("scClear").onclick=function(){hist=[];bhist=[];btn=null;scPlayers=[];scSel=-1;scList=[];$("scView").classList.remove("has");$("scMsg").textContent="";scRender()};
+$("scClear").onclick=function(){if(scTarget==="deal")dealList=[];hist=[];bhist=[];btn=null;scPlayers=[];scSel=-1;scList=[];$("scView").classList.remove("has");$("scMsg").textContent="";scRender()};
 $("scTarget").addEventListener("click",function(e){
   var t=e.target.getAttribute&&e.target.getAttribute("data-t");if(!t)return;
   scTarget=t;Array.prototype.forEach.call($("scTarget").children,function(b){b.classList.toggle("on",b===e.target)});scRender();
 });
 $("scChips").addEventListener("click",function(e){
   var x=e.target.getAttribute&&e.target.getAttribute("data-x");if(x===null||x===undefined)return;
-  scList.splice(+x,1);scRender();
+  (scTarget==="deal"?dealList:scList).splice(+x,1);scRender();
 });
 ["scCam","scLib"].forEach(function(id){$(id).addEventListener("change",function(){var f=this.files&&this.files[0];this.value="";scProcess(f)})});
 $("scUse").onclick=function(){
+  if(scTarget==="deal"){dealToTable();return}
   var tg=scTargets(),used={},take=[],skipped=0,idx=[];
   slots.forEach(function(c,i){if(c!==null&&tg.indexOf(i)<0)used[c]=1});
   (scSel>=0&&scPlayers[scSel]?scPlayers[scSel].cards:scList).forEach(function(f){var c=cardOf(f);if(used[c]){skipped++;return}if(take.length<tg.length)take.push(c)});
