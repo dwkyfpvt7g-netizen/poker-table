@@ -752,14 +752,24 @@ $("table").addEventListener("click",function(e){
 $("plPlus").onclick=function(){
   if(running||actN()>=capN())return;
   for(var s=0;s<10;s++){if(!act[s]){act[s]=1;break}}
-  game=null;slots=slots.map(function(){return null});syncPl();reset();setStatus("Players: "+actN()+".");render();
+  game=null;slots=slots.map(function(){return null});syncPl();reset();setStatus("Players: "+actN()+".");render();announcePlayers();
 };
 $("plMinus").onclick=function(){
   if(running||actN()<=2)return;
   for(var s=9;s>=0;s--){if(act[s]&&s!==me){act[s]=0;break}}
   syncOcc();var r=(dseat-me+10)%10;if(r&&!occ[r-1]){dlr=0;dseat=me}
-  game=null;slots=slots.map(function(){return null});syncPl();reset();setStatus("Players: "+actN()+".");render();
+  game=null;slots=slots.map(function(){return null});syncPl();reset();setStatus("Players: "+actN()+".");render();announcePlayers();
 };
+function announcePlayers(){
+  try{
+    var syn=window.speechSynthesis;if(!syn||voiceMode==="off")return;
+    var n=actN(),l=voiceMode,all=syn.getVoices()||[];
+    var vs=all.filter(function(v){return v.lang&&v.lang.toLowerCase().indexOf(l)===0});
+    if(!vs.length&&l==="ro"){l="en";vs=all.filter(function(v){return v.lang&&v.lang.toLowerCase().indexOf("en")===0})}
+    var t=l==="ro"?(n===1?"un jucător":n+(n<20?" jucători":" de jucători")):(n+" players");
+    syn.cancel();var u=new SpeechSynthesisUtterance(t);u.lang=l==="ro"?"ro-RO":"en-US";if(vs.length)u.voice=vs[0];u.rate=1.1;u.volume=1;syn.speak(u);
+  }catch(e){}
+}
 function syncPl(){syncOcc();$("plN").textContent=actN();$("plPlus").disabled=actN()>=capN();$("plMinus").disabled=actN()<=2}
 
 /* ---- game selector ---- */
