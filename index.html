@@ -156,6 +156,8 @@ button{font:inherit;color:inherit}
 #lockov.photo #lkTower{display:none}
 .lw{fill:#0b1424;stroke:#46537a;stroke-width:1.5;transition:fill .6s}
 .lw.on{fill:#ffd770;stroke:#fff1c2;filter:url(#lkGlow)}
+
+#lkTower canvas{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:50% 100%}
 </style>
 <main>
   <h1 id="ttl">♠ Texas Hold’em</h1>
@@ -186,7 +188,7 @@ button{font:inherit;color:inherit}
   <p class="note">Estimates assume random opponent cards. For study and analysis only.</p>
 </main>
 
-<div id="lockov" aria-label="Locked"><svg id="lkTower" viewBox="0 0 400 860" preserveAspectRatio="xMidYMax slice" aria-hidden="true"><defs><linearGradient id="lkSky" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#050912"/><stop offset=".6" stop-color="#14213d"/><stop offset="1" stop-color="#2b3a67"/></linearGradient><linearGradient id="lkBld" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#1b2338"/><stop offset=".5" stop-color="#2a3550"/><stop offset="1" stop-color="#151b2c"/></linearGradient><filter id="lkGlow" x="-60%" y="-60%" width="220%" height="220%"><feGaussianBlur stdDeviation="9" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter></defs><rect width="400" height="860" fill="url(#lkSky)"/><g fill="#fff" opacity=".75"><circle cx="40" cy="60" r="1.2"/><circle cx="330" cy="40" r="1.4"/><circle cx="90" cy="150" r="1"/><circle cx="360" cy="140" r="1.2"/><circle cx="250" cy="90" r="1"/><circle cx="170" cy="30" r="1.1"/><circle cx="20" cy="220" r="1"/><circle cx="380" cy="260" r="1"/></g><g fill="#0c1220"><rect x="0" y="560" width="70" height="300"/><rect x="60" y="640" width="50" height="220"/><rect x="310" y="520" width="90" height="340"/><rect x="280" y="660" width="40" height="200"/></g><rect x="198" y="40" width="4" height="70" fill="#3a4666"/><circle cx="200" cy="38" r="3" fill="#ff5a4d"/><polygon points="150,110 250,110 262,150 138,150" fill="#222c45"/><rect x="104" y="150" width="192" height="710" fill="url(#lkBld)"/><rect x="98" y="196" width="204" height="10" fill="#10172a"/><rect x="98" y="800" width="204" height="60" fill="#0e1424"/><g stroke="#3b4768" stroke-width="1.5" opacity=".7"><line x1="200" y1="206" x2="200" y2="800"/><line x1="104" y1="150" x2="104" y2="860"/><line x1="296" y1="150" x2="296" y2="860"/></g><rect class="lw" id="lw1" x="118" y="232" width="76" height="84" rx="3"/><rect class="lw" id="lw2" x="216" y="232" width="76" height="84" rx="3"/><rect class="lw" id="lw3" x="118" y="350" width="76" height="84" rx="3"/><rect class="lw" id="lw4" x="216" y="350" width="76" height="84" rx="3"/><rect class="lw" id="lw5" x="118" y="468" width="76" height="84" rx="3"/><rect class="lw" id="lw6" x="216" y="468" width="76" height="84" rx="3"/><rect class="lw" id="lw7" x="118" y="586" width="76" height="84" rx="3"/><rect class="lw" id="lw8" x="216" y="586" width="76" height="84" rx="3"/><rect class="lw" id="lw9" x="118" y="704" width="76" height="84" rx="3"/><rect class="lw" id="lw10" x="216" y="704" width="76" height="84" rx="3"/></svg><div class="clk"><b id="lkT">9:41</b><span id="lkD"></span></div>
+<div id="lockov" aria-label="Locked"><div id="lkTower"><canvas id="lkBg" width="600" height="900"></canvas><canvas id="lkFx" width="600" height="900"></canvas></div><div class="clk"><b id="lkT">9:41</b><span id="lkD"></span></div>
 <div class="pad"><div class="msg" id="lkM">Enter Passcode</div><div class="dots" id="lkDots"><i></i><i></i><i></i><i></i><i></i><i></i></div>
 <div class="keys" id="lkKeys"></div><button class="cnc" id="lkCancel">Cancel</button></div></div>
 <div class="sheet" id="sheet"><div class="in">
@@ -1253,11 +1255,72 @@ function setWall(u){lk.style.backgroundImage="url("+u+")"}
 function useTower(){lk.classList.remove("photo");lk.dataset.photo="";lk.style.backgroundImage="none";try{localStorage.removeItem("pt_wall")}catch(e){}}
 function usePhoto(u){setWall(u);lk.dataset.photo="1";lk.classList.add("photo")}
 (function(){var u=null;try{u=localStorage.getItem("pt_wall")}catch(e){}if(u)usePhoto(u);else useTower()})();
-function towerUpdate(){
+var WIN=[],winA=[0,0,0,0,0,0,0,0,0,0],winT=[0,0,0,0,0,0,0,0,0,0],fxRun=false;
+function drawScene(){
+  var cv=$("lkBg"),x=cv.getContext("2d"),W=600,H=900,seed=11;
+  function rnd(){seed|=0;seed=seed+0x6D2B79F5|0;var t=Math.imul(seed^seed>>>15,1|seed);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296}
+  var g=x.createLinearGradient(0,0,0,H);g.addColorStop(0,"#02040a");g.addColorStop(.45,"#0a1322");g.addColorStop(1,"#1b2640");x.fillStyle=g;x.fillRect(0,0,W,H);
+  for(var k=0;k<14;k++){var cx=rnd()*W,cy=40+rnd()*520,r=90+rnd()*190;var cg=x.createRadialGradient(cx,cy,0,cx,cy,r);
+    cg.addColorStop(0,"rgba(70,90,125,"+(.10+rnd()*.14)+")");cg.addColorStop(1,"rgba(70,90,125,0)");x.save();x.translate(cx,cy);x.scale(1.9,.45);x.translate(-cx,-cy);x.fillStyle=cg;x.beginPath();x.arc(cx,cy,r,0,7);x.fill();x.restore()}
+  function pt(f,u,v){var t=1-Math.pow(1-v,1.5),xl=f.bl+(f.tl-f.bl)*t,xr=f.br+(f.tr-f.br)*t,y=f.yb+(f.yt-f.yb)*t;return[xl+(xr-xl)*u,y]}
+  function cell(f,c,r){var C=f.C,R=f.R,gx=.17,gy=.3,u0=(c+gx)/C,u1=(c+1-gx)/C,v0=(r+gy)/R,v1=(r+1-gy)/R;return[pt(f,u0,v0),pt(f,u1,v0),pt(f,u1,v1),pt(f,u0,v1)]}
+  function poly(p){x.beginPath();x.moveTo(p[0][0],p[0][1]);for(var i=1;i<p.length;i++)x.lineTo(p[i][0],p[i][1]);x.closePath()}
+  function body(f,c1,c2){var q=[[f.bl,f.yb],[f.br,f.yb],[f.tr,f.yt],[f.tl,f.yt]],gg=x.createLinearGradient(f.bl,0,f.br,0);gg.addColorStop(0,c1);gg.addColorStop(1,c2);x.fillStyle=gg;poly(q);x.fill();
+    x.strokeStyle="rgba(150,175,220,.18)";x.lineWidth=1.5;x.beginPath();x.moveTo(f.bl,f.yb);x.lineTo(f.tl,f.yt);x.stroke()}
+  function windows(f,warm,skip){
+    for(var r=0;r<f.R;r++){var rowBias=rnd()<f.band?1:0;
+      for(var c=0;c<f.C;c++){
+        if(skip&&skip[c+","+r])continue;
+        var p=rnd(),th=rowBias?f.litP+.3:f.litP,q=cell(f,c,r);
+        if(p>th){x.fillStyle="rgba(20,32,52,"+(.5+rnd()*.3)+")";poly(q);x.fill();continue}
+        var cool=rnd()<f.cool,m=rnd(),col=cool?(m<.5?"#bfe6ff":"#8ecbff"):(m<.45?"#ffb04a":m<.8?"#ffc978":"#ffe3b0");
+        x.save();x.shadowColor=cool?"rgba(150,210,255,.8)":"rgba(255,170,70,.8)";x.shadowBlur=7;x.fillStyle=col;x.globalAlpha=.7+rnd()*.3;poly(q);x.fill();x.restore()}}
+  }
+  /* far left tower: cool white */
+  var F1={bl:10,br:235,tl:90,tr:228,yb:930,yt:272,C:10,R:34,litP:.7,band:.35,cool:.8};
+  body(F1,"#0d1424","#18233b");windows(F1);
+  /* middle low tower */
+  var F2={bl:90,br:330,tl:150,tr:330,yb:930,yt:440,C:9,R:30,litP:.42,band:.3,cool:.1};
+  body(F2,"#0b101c","#151d30");windows(F2);
+  /* right big tower: side face (reflective) then front face */
+  var S={bl:268,br:318,tl:322,tr:362,yb:930,yt:50,C:2,R:34,litP:.55,band:.4,cool:.05};
+  body(S,"#2a1a12","#5a3414");windows(S);
+  var sg=x.createLinearGradient(0,380,0,H);sg.addColorStop(0,"rgba(255,150,60,0)");sg.addColorStop(1,"rgba(255,140,50,.35)");x.fillStyle=sg;poly([[268,930],[318,930],[362,50],[322,50]]);x.globalAlpha=1;
+  var FR={bl:318,br:640,tl:362,tr:520,yb:930,yt:50,C:8,R:30,litP:.33,band:.25,cool:.12};
+  var SPOTS=[[0,18],[2,17],[1,16],[3,15],[0,13],[2,12],[3,10],[1,9],[2,6],[0,5]],skip={};
+  SPOTS.forEach(function(p){skip[p[0]+","+p[1]]=1});
+  body(FR,"#070b14","#10182a");windows(FR,0,skip);
+  WIN=SPOTS.map(function(p){var q=cell(FR,p[0],p[1]);x.fillStyle="rgba(20,32,52,.65)";poly(q);x.fill();return q});
+  /* street glow + vignette + grain */
+  var gl=x.createLinearGradient(0,H-160,0,H);gl.addColorStop(0,"rgba(255,140,60,0)");gl.addColorStop(1,"rgba(255,140,60,.22)");x.fillStyle=gl;x.fillRect(0,H-160,W,160);
+  var vg=x.createRadialGradient(W/2,H*.55,H*.25,W/2,H*.55,H*.8);vg.addColorStop(0,"rgba(0,0,0,0)");vg.addColorStop(1,"rgba(0,0,0,.55)");x.fillStyle=vg;x.fillRect(0,0,W,H);
+  for(var n=0;n<3500;n++){x.fillStyle="rgba(255,255,255,"+(rnd()*.05)+")";x.fillRect(rnd()*W,rnd()*H,1,1)}
+}
+function drawFx(){
+  var cv=$("lkFx"),x=cv.getContext("2d");x.clearRect(0,0,600,900);
+  for(var i=0;i<WIN.length;i++){var a=winA[i];if(a<=0)continue;var q=WIN[i];
+    x.save();var hx=(q[0][0]+q[1][0])/2,hy=(q[0][1]+q[3][1])/2,hg=x.createRadialGradient(hx,hy,2,hx,hy,95);hg.addColorStop(0,"rgba(255,200,110,"+(.65*a)+")");hg.addColorStop(1,"rgba(255,160,60,0)");x.fillStyle=hg;x.fillRect(hx-100,hy-100,200,200);x.shadowColor="rgba(255,210,120,"+a+")";x.shadowBlur=60*a;
+    var mx=(q[0][0]+q[1][0])/2,my=(q[0][1]+q[3][1])/2,gg=x.createRadialGradient(mx,my,1,mx,my,40);gg.addColorStop(0,"rgba(255,255,245,"+a+")");gg.addColorStop(1,"rgba(255,225,150,"+a+")");
+    x.fillStyle=gg;x.beginPath();x.moveTo(q[0][0],q[0][1]);for(var k=1;k<4;k++)x.lineTo(q[k][0],q[k][1]);x.closePath();x.fill();x.restore()}
+}
+function fxLoop(){
+  var busy=false,now=Date.now();
+  for(var i=0;i<10;i++){
+    if(winT[i]>0){var p=Math.min(1,(now-winT[i])/1300);winA[i]=p*p*(3-2*p);if(p<1)busy=true}
+  }
+  drawFx();if(busy)requestAnimationFrame(fxLoop);else fxRun=false;
+}
+function towerUpdate(instant){
   var on={},g=game;
   try{if(g&&g.stage===4&&g.win){g.win.forEach(function(v,p){if(v){on[NM[p===0?0:g.seats[p-1]+1]]=1}})}}catch(e){}
-  for(var i=1;i<=10;i++){var w=document.getElementById("lw"+i);if(w)w.setAttribute("class","lw"+(on[i]?" on":""))}
+  var ch=false;
+  for(var i=1;i<=10;i++){
+    if(on[i]){if(winA[i-1]<1&&!winT[i-1]){winT[i-1]=instant?1:Date.now();if(instant)winA[i-1]=1;ch=true}}
+    else if(winA[i-1]>0||winT[i-1]){winA[i-1]=0;winT[i-1]=0;ch=true}
+  }
+  if(ch){if(instant)drawFx();else if(!fxRun){fxRun=true;requestAnimationFrame(fxLoop)}}
 }
+setTimeout(drawScene,0);
 setInterval(function(){if(lk.classList.contains("on"))towerUpdate()},400);
 $("scTower").onclick=function(){useTower();$("scMsg").textContent="Skyscraper wallpaper on."};
 $("scWall").onchange=function(){
@@ -1279,7 +1342,7 @@ document.addEventListener("visibilitychange",function(){if(document.visibilitySt
 (function(){var h="";[1,2,3,4,5,6,7,8,9,"",0,"⌫"].forEach(function(k){h+=k===""?'<button class="e" disabled></button>':'<button data-k="'+k+'">'+k+'</button>'});$("lkKeys").innerHTML=h})();
 function secretEnter(){
   lkIn="";lkDots();$("lkM").textContent="Enter Passcode";lkClock();clearInterval(lkTimer);lkTimer=setInterval(lkClock,15000);
-  lk.className="on"+(lk.dataset.photo?" photo":"");towerUpdate();wakeOn();
+  lk.className="on"+(lk.dataset.photo?" photo":"");towerUpdate(true);wakeOn();
 }
 function secretLeave(){lk.className=lk.dataset.photo?"photo":"";clearInterval(lkTimer);wakeOff()}
 $("scSecret").onclick=function(){
